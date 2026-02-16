@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 
 export type GameState = 'playing' | 'level-up' | 'game-over';
-export type UpgradeType = 'tether-length' | 'damage' | 'speed';
+export type UpgradeType = 'tether-length' | 'damage' | 'speed' | 'ammo' | 'attack-speed';
+export type PlayerId = 'kitty' | 'doggo';
 
 export interface GameStore {
   // Health
@@ -36,6 +37,26 @@ export interface GameStore {
   // Level-Up Selection
   selectedUpgrade: UpgradeType | null;
   setSelectedUpgrade: (u: UpgradeType | null) => void;
+  upgradingPlayer: PlayerId | null;
+  setUpgradingPlayer: (p: PlayerId | null) => void;
+
+  // Tether durability
+  tetherDurability: number;
+  maxTetherDurability: number;
+  tetherBroken: boolean;
+  setTetherDurability: (n: number) => void;
+  setTetherBroken: (b: boolean) => void;
+
+  // Proximity
+  playersTouching: boolean;
+  setPlayersTouching: (b: boolean) => void;
+
+  // Customization screen
+  showCustomize: boolean;
+  setShowCustomize: (show: boolean) => void;
+
+  // Max health setter (for difficulty)
+  setMaxHealth: (hp: number) => void;
 
   // Reset
   reset: () => void;
@@ -53,6 +74,12 @@ const initialState = {
   waveNumber: 1,
   gameState: 'playing' as GameState,
   selectedUpgrade: null as UpgradeType | null,
+  upgradingPlayer: null as PlayerId | null,
+  tetherDurability: 100,
+  maxTetherDurability: 100,
+  tetherBroken: false,
+  playersTouching: false,
+  showCustomize: false,
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -68,5 +95,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setWaveNumber: (n: number) => set({ waveNumber: n }),
   setGameState: (state: GameState) => set({ gameState: state }),
   setSelectedUpgrade: (u: UpgradeType | null) => set({ selectedUpgrade: u }),
+  upgradingPlayer: null,
+  setUpgradingPlayer: (p: PlayerId | null) => set({ upgradingPlayer: p }),
+  tetherDurability: 100,
+  maxTetherDurability: 100,
+  tetherBroken: false,
+  setTetherDurability: (n: number) => set({ tetherDurability: Math.max(0, n) }),
+  setTetherBroken: (b: boolean) => set({ tetherBroken: b }),
+  playersTouching: false,
+  setPlayersTouching: (b: boolean) => set({ playersTouching: b }),
+  showCustomize: false,
+  setShowCustomize: (show: boolean) => set({ showCustomize: show }),
+  setMaxHealth: (hp: number) => set({ maxHealth: hp, health: hp }),
   reset: () => set(initialState),
 }));

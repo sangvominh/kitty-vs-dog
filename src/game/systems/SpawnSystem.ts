@@ -5,6 +5,8 @@ import { EnemyBill } from '../entities/EnemyBill';
 import { EnemyDeadline } from '../entities/EnemyDeadline';
 import { EnemyExLover } from '../entities/EnemyExLover';
 import type { Player } from '../entities/Player';
+import type { SpriteProgressionSystem } from './SpriteProgressionSystem';
+import { useGameStore } from '../state/gameStore';
 
 export interface SpawnConfig {
   interval: number;
@@ -19,11 +21,12 @@ export class SpawnSystem {
   public enemies: Enemy[] = [];
   public activeCap: number = 50;
   public paused: boolean = false;
+  public spawnDelay: number = 5000;
 
   private kitty: Player;
   private doggo: Player;
+  private spriteProgression: SpriteProgressionSystem | null = null;
   private lastSpawnTime: number = 0;
-  private spawnDelay: number = 5000; // 5-second initial delay
   private gameStartTime: number = 0;
 
   // Current spawn config (driven by WaveSystem)
@@ -45,28 +48,32 @@ export class SpawnSystem {
     this.kitty = kitty;
     this.doggo = doggo;
     this.gameStartTime = scene.time.now;
-
-    // Pre-allocate enemy pools
-    this.preallocatePool();
   }
 
-  private preallocatePool(): void {
-    for (let i = 0; i < 30; i++) {
+  /**
+   * Allocate enemy pools based on difficulty pool sizes.
+   * Must be called after construction and before first update.
+   */
+  initPools(billCount: number = 30, deadlineCount: number = 20, bossCount: number = 2): void {
+    for (let i = 0; i < billCount; i++) {
       const bill = new EnemyBill(this.scene);
       this.billPool.push(bill);
       this.enemies.push(bill);
     }
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < deadlineCount; i++) {
       const deadline = new EnemyDeadline(this.scene);
       this.deadlinePool.push(deadline);
       this.enemies.push(deadline);
     }
-    // Boss pool — max 2
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < bossCount; i++) {
       const boss = new EnemyExLover(this.scene);
       this.bossPool.push(boss);
       this.enemies.push(boss);
     }
+  }
+
+  setSpriteProgression(sp: SpriteProgressionSystem): void {
+    this.spriteProgression = sp;
   }
 
   setSpawnConfig(config: SpawnConfig): void {
@@ -93,13 +100,26 @@ export class SpawnSystem {
       this.lastSpawnTime = time;
     }
 
-    // Update enemy midpoint seeking
-    const midX = (this.kitty.x + this.doggo.x) / 2;
-    const midY = (this.kitty.y + this.doggo.y) / 2;
-
+    // Each enemy targets the nearest player (not midpoint)
     for (const enemy of this.enemies) {
       if (enemy.active) {
-        enemy.seekTarget(midX, midY);
+        const distToKitty = Phaser.Math.Distance.Between(
+          enemy.x,
+          enemy.y,
+          this.kitty.x,
+          this.kitty.y,
+        );
+        const distToDoggo = Phaser.Math.Distance.Between(
+          enemy.x,
+          enemy.y,
+          this.doggo.x,
+          this.doggo.y,
+        );
+        if (distToKitty <= distToDoggo) {
+          enemy.seekTarget(this.kitty.x, this.kitty.y);
+        } else {
+          enemy.seekTarget(this.doggo.x, this.doggo.y);
+        }
         enemy.update();
       }
     }
@@ -145,6 +165,11 @@ export class SpawnSystem {
         this.currentConfig.healthMultiplier,
         this.currentConfig.speedMultiplier,
       );
+      // Apply custom enemy texture if available
+      if (this.spriteProgression) {
+        const waveNumber = useGameStore.getState().waveNumber;
+        this.spriteProgression.updateEnemyTexture(enemy, waveNumber);
+      }
       console.log(`[SpawnSystem] Spawned ${type} at (${Math.round(pos.x)}, ${Math.round(pos.y)})`);
     }
 

@@ -211,11 +211,11 @@ An attack object with multiple sub-types.
 
 **Sub-type details**:
 
-| Sub-type          | Speed | Range/Lifetime       | Behavior                                                  |
-| ----------------- | ----- | -------------------- | --------------------------------------------------------- |
-| ranged-shot       | 6.0   | 300px or first hit   | Fires toward nearest enemy, destroyed on hit              |
+| Sub-type          | Speed | Range/Lifetime       | Behavior                                                                                                     |
+| ----------------- | ----- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| ranged-shot       | 6.0   | 300px or first hit   | Fires toward nearest enemy, destroyed on hit                                                                 |
 | melee-swing       | N/A   | Instant, 60px radius | **Virtual** — distance query in CombatSystem, no Matter.js body. Damages all enemies within radius of Doggo. |
-| emotional-baggage | 4.0   | Screen-wide          | Fires toward pair midpoint, applies 3s slow on player hit |
+| emotional-baggage | 4.0   | Screen-wide          | Fires toward pair midpoint, applies 3s slow on player hit                                                    |
 
 ---
 

@@ -7,7 +7,10 @@ import { Projectile } from '../entities/Projectile';
 import { Coin } from '../entities/Coin';
 import type { SpawnSystem } from './SpawnSystem';
 import type { DamageNumberSystem } from './DamageNumberSystem';
+import type { LoveReloadSystem } from './LoveReloadSystem';
 import { useGameStore } from '../state/gameStore';
+import { useSettingsStore } from '../../lib/settingsStore';
+import { getDifficulty } from '../state/difficultyConfig';
 
 const Matter = Phaser.Physics.Matter.Matter;
 
@@ -21,6 +24,7 @@ export class CombatSystem {
   private tether: Tether;
   private spawnSystem!: SpawnSystem;
   private damageNumbers: DamageNumberSystem | null = null;
+  private loveReloadSystem: LoveReloadSystem | null = null;
 
   // Projectile pool
   private rangedPool: Projectile[] = [];
@@ -44,6 +48,10 @@ export class CombatSystem {
 
   setDamageNumbers(dn: DamageNumberSystem): void {
     this.damageNumbers = dn;
+  }
+
+  setLoveReloadSystem(lrs: LoveReloadSystem): void {
+    this.loveReloadSystem = lrs;
   }
 
   private preallocatePools(): void {
@@ -189,8 +197,12 @@ export class CombatSystem {
   }
 
   onEnemyDeath(enemy: Enemy): void {
+    // Apply difficulty coin multiplier
+    const diffConfig = getDifficulty(useSettingsStore.getState().difficultyId);
+    const coinValue = Math.max(1, Math.round(enemy.coinDropValue * diffConfig.coinDropMultiplier));
+
     // Spawn coin at enemy position
-    this.spawnCoin(enemy.x, enemy.y, enemy.coinDropValue);
+    this.spawnCoin(enemy.x, enemy.y, coinValue);
 
     // Deactivate enemy
     enemy.deactivate();
@@ -246,7 +258,10 @@ export class CombatSystem {
    * Clothesline hit detection — sweep rope through enemies each frame.
    */
   private checkClotheslineHits(time: number): void {
+    // Clothesline disabled when tether broken or players touching
     if (!this.tether.isActive) return;
+    if (this.tether.broken) return;
+    if (this.tether.playersTouching) return;
     if (!this.spawnSystem) return;
 
     const posA = this.kitty.body.position;
@@ -267,6 +282,9 @@ export class CombatSystem {
 
         // Deal clothesline damage
         const isDead = enemy.takeDamage(this.tether.clotheslineDamage);
+
+        // Consume tether durability
+        this.tether.consumeDurability();
 
         // Show clothesline damage number
         this.damageNumbers?.spawn(enemy.x, enemy.y, this.tether.clotheslineDamage, '#ffffff');
@@ -329,18 +347,24 @@ export class CombatSystem {
     player.lastAttackTime = time;
     player.ammo--;
 
+    // Damage reduction when players are touching (hugging)
+    let damageMultiplier = 1.0;
+    if (this.loveReloadSystem?.isDamageReduced) {
+      damageMultiplier = this.loveReloadSystem.TOUCH_DAMAGE_MULTIPLIER;
+    }
+
     // Update store
     const store = useGameStore.getState();
     if (player.id === 'kitty') {
       store.setKittyAmmo(player.ammo);
-      this.fireRangedShot(player, nearest);
+      this.fireRangedShot(player, nearest, damageMultiplier);
     } else {
       store.setDoggoStamina(player.ammo);
-      this.performMeleeSwing(player, activeEnemies);
+      this.performMeleeSwing(player, activeEnemies, damageMultiplier);
     }
   }
 
-  private fireRangedShot(player: Player, target: Enemy): void {
+  private fireRangedShot(player: Player, target: Enemy, damageMultiplier: number = 1): void {
     const proj = this.rangedPool.find((p) => !p.active);
     if (!proj) return;
 
@@ -348,27 +372,22 @@ export class CombatSystem {
     const dy = target.y - player.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     const speed = 6.0;
+    const damage = Math.floor(player.attackDamage * damageMultiplier);
 
-    proj.activate(
-      player.x,
-      player.y,
-      (dx / dist) * speed,
-      (dy / dist) * speed,
-      player.attackDamage,
-      player.id,
-    );
+    proj.activate(player.x, player.y, (dx / dist) * speed, (dy / dist) * speed, damage, player.id);
   }
 
-  private performMeleeSwing(player: Player, enemies: Enemy[]): void {
+  private performMeleeSwing(player: Player, enemies: Enemy[], damageMultiplier: number = 1): void {
+    const damage = Math.floor(player.attackDamage * damageMultiplier);
     // Virtual melee attack — distance query, no projectile body
     for (const enemy of enemies) {
       if (!enemy.active) continue;
       const dist = Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y);
       if (dist <= player.attackRange) {
-        const isDead = enemy.takeDamage(player.attackDamage);
+        const isDead = enemy.takeDamage(damage);
 
         // Show melee damage number
-        this.damageNumbers?.spawn(enemy.x, enemy.y, player.attackDamage, '#ff8844');
+        this.damageNumbers?.spawn(enemy.x, enemy.y, damage, '#ff8844');
 
         if (isDead) {
           this.onEnemyDeath(enemy);

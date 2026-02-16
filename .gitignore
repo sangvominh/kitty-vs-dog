@@ -40,3 +40,7 @@ coverage/
 
 # TypeScript
 *.tsbuildinfo
+
+# Local private data (game settings, saves — not for publishing)
+local-data/
+!local-data/README.md

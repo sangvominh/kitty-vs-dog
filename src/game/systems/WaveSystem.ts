@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import type { EnemyType } from '../entities/Enemy';
 import type { EnemyExLover } from '../entities/EnemyExLover';
 import type { SpawnSystem } from './SpawnSystem';
+import type { SpriteProgressionSystem } from './SpriteProgressionSystem';
 import { useGameStore } from '../state/gameStore';
+import { getDifficulty, type DifficultyId, type DifficultyLevel } from '../state/difficultyConfig';
 
 interface WaveConfig {
   spawnInterval: number;
@@ -29,26 +31,46 @@ export class WaveSystem {
   public currentBoss: EnemyExLover | null = null;
 
   private spawnSystem: SpawnSystem;
+  private spriteProgression: SpriteProgressionSystem | null = null;
   private waveNumber: number = 1;
   private waveStartTime: number;
-  private readonly WAVE_DURATION = 30000; // 30 seconds per wave
+  private waveDuration: number;
   private lastWaveTime: number;
+  private difficulty: DifficultyLevel;
 
-  constructor(scene: Phaser.Scene, spawnSystem: SpawnSystem) {
+  constructor(scene: Phaser.Scene, spawnSystem: SpawnSystem, difficultyId?: DifficultyId) {
     this.scene = scene;
     this.spawnSystem = spawnSystem;
+    this.difficulty = getDifficulty(difficultyId ?? 'binh-thuong');
+    this.waveDuration = this.difficulty.waveDuration;
     this.waveStartTime = scene.time.now;
     this.lastWaveTime = scene.time.now;
 
+    // Apply difficulty to spawn system
+    this.spawnSystem.activeCap = this.difficulty.activeCap;
+    this.spawnSystem.spawnDelay = this.difficulty.initialSpawnDelay;
+
+    // Initialize enemy pools with difficulty-appropriate sizes
+    const [bills, deadlines, bosses] = this.difficulty.poolSizes;
+    this.spawnSystem.initPools(bills, deadlines, bosses);
+
     // Apply initial wave config
     this.applyWaveConfig();
+
+    console.log(
+      `[WaveSystem] Difficulty: ${this.difficulty.name} | Cap: ${this.difficulty.activeCap} | Pool: ${bills}/${deadlines}/${bosses} | SpawnDelay: ${this.difficulty.initialSpawnDelay}ms`,
+    );
+  }
+
+  setSpriteProgression(sp: SpriteProgressionSystem): void {
+    this.spriteProgression = sp;
   }
 
   update(time: number): void {
     if (this.paused) return;
 
     // Check for wave transition
-    if (time - this.lastWaveTime >= this.WAVE_DURATION) {
+    if (time - this.lastWaveTime >= this.waveDuration) {
       this.advanceWave(time);
     }
 
@@ -76,11 +98,21 @@ export class WaveSystem {
     const store = useGameStore.getState();
     store.setWaveNumber(this.waveNumber);
 
+    // Notify sprite progression system
+    if (this.spriteProgression) {
+      this.spriteProgression.onWaveAdvance(this.waveNumber);
+    }
+
     this.applyWaveConfig();
 
-    // Check for boss spawn
+    // Check for boss spawn — use wave table for first 8 waves, then difficulty frequency
     const waveConfig = this.getWaveConfig();
-    if (waveConfig.hasBoss && !this.bossActive) {
+    const shouldSpawnBoss =
+      this.waveNumber <= WAVE_TABLE.length
+        ? waveConfig.hasBoss
+        : waveConfig.hasBoss || this.waveNumber % this.difficulty.bossFrequency === 0;
+
+    if (shouldSpawnBoss && !this.bossActive) {
       this.requestBossSpawn();
     }
   }
@@ -90,8 +122,8 @@ export class WaveSystem {
       return WAVE_TABLE[this.waveNumber - 1];
     }
 
-    // Beyond wave 8: floor values
-    const hasBoss = (this.waveNumber - 5) % 4 === 0; // Every 4th wave after wave 5
+    // Beyond wave 8: floor values, boss frequency from difficulty
+    const hasBoss = (this.waveNumber - 5) % this.difficulty.bossFrequency === 0;
     return {
       spawnInterval: 400,
       batchSize: 6,
@@ -102,12 +134,25 @@ export class WaveSystem {
 
   private applyWaveConfig(): void {
     const config = this.getWaveConfig();
-    const healthMul = Math.sqrt(this.waveNumber);
-    const speedMul = 1 + 0.1 * Math.log2(this.waveNumber);
+
+    // Base multipliers from wave progression
+    const baseHealthMul = Math.sqrt(this.waveNumber);
+    const baseSpeedMul = 1 + 0.1 * Math.log2(this.waveNumber);
+
+    // Apply difficulty multipliers on top
+    const healthMul = baseHealthMul * this.difficulty.enemyHpMultiplier;
+    const speedMul = baseSpeedMul * this.difficulty.enemySpeedMultiplier;
+
+    // Apply difficulty spawn rate and batch bonus
+    const interval = Math.max(
+      100,
+      Math.round(config.spawnInterval * this.difficulty.spawnRateMultiplier),
+    );
+    const batchSize = Math.max(1, config.batchSize + this.difficulty.batchSizeBonus);
 
     this.spawnSystem.setSpawnConfig({
-      interval: config.spawnInterval,
-      batchSize: config.batchSize,
+      interval,
+      batchSize,
       enemyTypes: config.enemyTypes,
       healthMultiplier: healthMul,
       speedMultiplier: speedMul,

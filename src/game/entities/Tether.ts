@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { Player } from './Player';
+import { useGameStore } from '../state/gameStore';
 
 const Matter = Phaser.Physics.Matter.Matter;
 
@@ -8,16 +9,23 @@ export class Tether {
   public playerA: Player;
   public playerB: Player;
 
-  // Spring parameters
+  // Rope parameters
   public restLength: number = 200;
   public maxDistance: number = 300;
-  public stiffness: number = 0.02;
-  public damping: number = 0.05;
 
   // Clothesline parameters
   public clotheslineDamage: number = 50;
   public clotheslineKnockback: number = 8.0;
   public minActiveLength: number = 50;
+
+  // Durability
+  public durability: number = 100;
+  public maxDurability: number = 100;
+  public broken: boolean = false;
+  private readonly DURABILITY_COST_PER_HIT = 3;
+
+  // Proximity detection
+  public readonly TOUCH_DISTANCE = 45;
 
   // Rendering
   public graphics: Phaser.GameObjects.Graphics;
@@ -25,27 +33,15 @@ export class Tether {
   // Clothesline timing
   private clotheslineFlashTimer: number = 0;
 
-  private constraint: MatterJS.ConstraintType;
-
   constructor(scene: Phaser.Scene, playerA: Player, playerB: Player) {
     this.scene = scene;
     this.playerA = playerA;
     this.playerB = playerB;
 
-    // Create Matter.js spring constraint
-    this.constraint = Matter.Constraint.create({
-      bodyA: playerA.body,
-      bodyB: playerB.body,
-      length: this.restLength,
-      stiffness: this.stiffness,
-      damping: this.damping,
-      pointA: { x: 0, y: 0 },
-      pointB: { x: 0, y: 0 },
-    });
+    // No Matter.js constraint — we handle all rope physics manually
+    // This allows players to freely get close (touch for healing)
+    // while enforcing max distance and gentle pull when stretched
 
-    scene.matter.world.add(this.constraint);
-
-    // Create graphics for rope rendering
     this.graphics = scene.add.graphics();
   }
 
@@ -58,13 +54,37 @@ export class Tether {
   }
 
   get isActive(): boolean {
-    return this.currentLength > this.minActiveLength;
+    return !this.broken && this.currentLength > this.minActiveLength;
+  }
+
+  /** Are the two players close enough to be "touching"? */
+  get playersTouching(): boolean {
+    return this.currentLength <= this.TOUCH_DISTANCE;
+  }
+
+  /** Reduce durability after a clothesline hit. Returns true if just broke. */
+  consumeDurability(): boolean {
+    if (this.broken) return false;
+    this.durability = Math.max(0, this.durability - this.DURABILITY_COST_PER_HIT);
+    const store = useGameStore.getState();
+    store.setTetherDurability(this.durability);
+    if (this.durability <= 0) {
+      this.broken = true;
+      store.setTetherBroken(true);
+      return true;
+    }
+    return false;
   }
 
   /**
-   * Enforce hard max distance — called in update() after physics step
+   * Enforce rope physics — called every frame after physics step.
+   * - Players can freely move between 0 and restLength (no force).
+   * - Between restLength and maxDistance: gentle elastic pull inward.
+   * - Beyond maxDistance: hard clamp.
    */
   enforceMaxDistance(): void {
+    if (this.broken) return;
+
     const posA = this.playerA.body.position;
     const posB = this.playerB.body.position;
 
@@ -72,11 +92,13 @@ export class Tether {
     const dy = posB.y - posA.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist > this.maxDistance) {
-      const nx = dx / dist;
-      const ny = dy / dist;
+    if (dist <= this.restLength) return; // Free movement zone
 
-      // Center on midpoint
+    const nx = dx / dist;
+    const ny = dy / dist;
+
+    if (dist > this.maxDistance) {
+      // Hard clamp — snap back to maxDistance
       const midX = (posA.x + posB.x) / 2;
       const midY = (posA.y + posB.y) / 2;
       const halfMax = this.maxDistance / 2;
@@ -90,24 +112,38 @@ export class Tether {
         y: midY + ny * halfMax,
       });
 
-      // Dampen outward velocity
+      // Kill outward velocity
       const velA = this.playerA.body.velocity;
-      const dotA = velA.x * nx + velA.y * ny;
-      if (dotA < 0) {
+      const dotA = velA.x * (-nx) + velA.y * (-ny);
+      if (dotA > 0) {
         Matter.Body.setVelocity(this.playerA.body, {
-          x: velA.x - dotA * nx * 0.8,
-          y: velA.y - dotA * ny * 0.8,
+          x: velA.x + dotA * nx,
+          y: velA.y + dotA * ny,
         });
       }
 
       const velB = this.playerB.body.velocity;
-      const dotB = velB.x * -nx + velB.y * -ny;
-      if (dotB < 0) {
+      const dotB = velB.x * nx + velB.y * ny;
+      if (dotB > 0) {
         Matter.Body.setVelocity(this.playerB.body, {
-          x: velB.x - dotB * -nx * 0.8,
-          y: velB.y - dotB * -ny * 0.8,
+          x: velB.x - dotB * nx,
+          y: velB.y - dotB * ny,
         });
       }
+    } else {
+      // Elastic zone (restLength < dist <= maxDistance)
+      // Gentle inward pull that increases with stretch
+      const stretch = (dist - this.restLength) / (this.maxDistance - this.restLength);
+      const pullStrength = stretch * 0.0015; // Gradual pull force
+
+      Matter.Body.applyForce(this.playerA.body, posA, {
+        x: nx * pullStrength,
+        y: ny * pullStrength,
+      });
+      Matter.Body.applyForce(this.playerB.body, posB, {
+        x: -nx * pullStrength,
+        y: -ny * pullStrength,
+      });
     }
   }
 
@@ -117,15 +153,26 @@ export class Tether {
   render(): void {
     this.graphics.clear();
 
+    // Don't render rope when broken
+    if (this.broken) return;
+
+    // Don't render when players touching (tether hidden)
+    if (this.playersTouching) return;
+
     const posA = this.playerA.body.position;
     const posB = this.playerB.body.position;
 
     const dist = this.currentLength;
     const stretchRatio = Math.min(dist / this.maxDistance, 1.0);
 
-    // Color shifts: white → yellow → red
+    // Color shifts based on durability and stretch
+    const durabilityRatio = this.durability / this.maxDurability;
     let color: number;
-    if (stretchRatio < 0.5) {
+    if (durabilityRatio < 0.3) {
+      // Low durability: flicker red
+      const flicker = Math.sin(Date.now() * 0.01) > 0 ? 0xff0000 : 0xff4444;
+      color = flicker;
+    } else if (stretchRatio < 0.5) {
       color = 0xffffff; // slack: white
     } else if (stretchRatio < 0.85) {
       const t = (stretchRatio - 0.5) / 0.35;
@@ -177,7 +224,6 @@ export class Tether {
   }
 
   destroy(): void {
-    this.scene.matter.world.removeConstraint(this.constraint);
     this.graphics.destroy();
   }
 }

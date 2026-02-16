@@ -10,7 +10,14 @@ import { LoveReloadSystem } from '../systems/LoveReloadSystem';
 import { WaveSystem } from '../systems/WaveSystem';
 import { LevelUpSystem } from '../systems/LevelUpSystem';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
+import { SpriteProgressionSystem } from '../systems/SpriteProgressionSystem';
+import { LevelUpVFXSystem } from '../systems/LevelUpVFXSystem';
+import { BackgroundRenderer } from '../systems/BackgroundRenderer';
 import { useGameStore } from '../state/gameStore';
+import { useSpriteStore } from '../state/spriteStore';
+import { DEFAULT_DISPLAY_SIZES } from '../state/spriteTypes';
+import { useSettingsStore } from '../../lib/settingsStore';
+import { getDifficulty } from '../state/difficultyConfig';
 
 export class GameScene extends Phaser.Scene {
   public kitty!: Player;
@@ -23,15 +30,12 @@ export class GameScene extends Phaser.Scene {
   public waveSystem!: WaveSystem;
   public levelUpSystem!: LevelUpSystem;
   public damageNumbers!: DamageNumberSystem;
+  public spriteProgression!: SpriteProgressionSystem;
+  public vfxSystem!: LevelUpVFXSystem;
 
   // Timer tracking
   private gameStartTime: number = 0;
   private lastTimerSecond: number = -1;
-
-  // Passive health regen
-  private lastHealthRegenTime: number = 0;
-  private readonly HEALTH_REGEN_INTERVAL = 5000; // 1 HP every 5 seconds
-  private readonly HEALTH_REGEN_AMOUNT = 1;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -40,6 +44,15 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     // Reset store on fresh game
     useGameStore.getState().reset();
+
+    // Apply difficulty to player health
+    const difficultyId = useSettingsStore.getState().difficultyId;
+    const difficulty = getDifficulty(difficultyId);
+    useGameStore.getState().setMaxHealth(difficulty.playerMaxHealth);
+
+    // Draw background scenery (must be first so everything renders on top)
+    const bgRenderer = new BackgroundRenderer(this);
+    bgRenderer.render();
 
     // Create arena boundary walls
     this.createBoundaries();
@@ -64,6 +77,9 @@ export class GameScene extends Phaser.Scene {
     // Create tether between players
     this.tether = new Tether(this, this.kitty, this.doggo);
 
+    // Apply custom sprites from spriteStore if available
+    this.applyCustomCharacterSprites();
+
     // Create input system
     this.inputSystem = new InputSystem(this, this.kitty, this.doggo);
 
@@ -78,11 +94,27 @@ export class GameScene extends Phaser.Scene {
     this.damageNumbers = new DamageNumberSystem(this);
     this.combatSystem.setDamageNumbers(this.damageNumbers);
 
-    // Create love reload system
-    this.loveReloadSystem = new LoveReloadSystem(this, this.kitty, this.doggo);
+    // Create love reload system (proximity healing)
+    this.loveReloadSystem = new LoveReloadSystem(this, this.kitty, this.doggo, this.tether);
+    this.loveReloadSystem.setDamageNumbers(this.damageNumbers);
 
-    // Create wave system
-    this.waveSystem = new WaveSystem(this, this.spawnSystem);
+    // Connect love reload to combat for damage reduction
+    this.combatSystem.setLoveReloadSystem(this.loveReloadSystem);
+
+    // Create wave system (with difficulty)
+    this.waveSystem = new WaveSystem(this, this.spawnSystem, difficultyId);
+
+    // Create sprite progression system
+    this.spriteProgression = new SpriteProgressionSystem(this, this.kitty, this.doggo);
+
+    // Create VFX system
+    this.vfxSystem = new LevelUpVFXSystem(this);
+
+    // Wire sprite progression into spawn system
+    this.spawnSystem.setSpriteProgression(this.spriteProgression);
+
+    // Wire sprite progression into wave system
+    this.waveSystem.setSpriteProgression(this.spriteProgression);
 
     // Create level-up system
     this.levelUpSystem = new LevelUpSystem(
@@ -92,6 +124,8 @@ export class GameScene extends Phaser.Scene {
       this.tether,
       this.spawnSystem,
       this.waveSystem,
+      this.spriteProgression,
+      this.vfxSystem,
     );
 
     // Listen for boss spawn requests
@@ -104,6 +138,10 @@ export class GameScene extends Phaser.Scene {
 
     // Record game start time
     this.gameStartTime = this.time.now;
+
+    // Sync tether durability to store
+    const store = useGameStore.getState();
+    store.setTetherDurability(this.tether.durability);
 
     console.log('[GameScene] create() complete — all systems initialized');
   }
@@ -127,21 +165,6 @@ export class GameScene extends Phaser.Scene {
     store.setKittyAmmo(this.kitty.ammo);
     store.setDoggoStamina(this.doggo.ammo);
 
-    // Passive health regen (1 HP every 5s, only if not full)
-    if (
-      store.health < store.maxHealth &&
-      time - this.lastHealthRegenTime >= this.HEALTH_REGEN_INTERVAL
-    ) {
-      this.lastHealthRegenTime = time;
-      const newHealth = Math.min(store.health + this.HEALTH_REGEN_AMOUNT, store.maxHealth);
-      store.setHealth(newHealth);
-      this.damageNumbers.spawnHeal(
-        (this.kitty.x + this.doggo.x) / 2,
-        (this.kitty.y + this.doggo.y) / 2,
-        this.HEALTH_REGEN_AMOUNT,
-      );
-    }
-
     // Enforce tether max distance
     this.tether.enforceMaxDistance();
 
@@ -157,8 +180,8 @@ export class GameScene extends Phaser.Scene {
     // Update damage numbers
     this.damageNumbers.update();
 
-    // Update love reload system
-    this.loveReloadSystem.update();
+    // Update love reload system (proximity healing)
+    this.loveReloadSystem.update(time);
 
     // Update wave system
     this.waveSystem.update(time);
@@ -175,6 +198,26 @@ export class GameScene extends Phaser.Scene {
     if (store.health <= 0) {
       store.setGameState('game-over');
       this.scene.start('GameOverScene');
+    }
+  }
+
+  /**
+   * Apply custom character sprites from spriteStore if available.
+   */
+  private applyCustomCharacterSprites(): void {
+    const spriteStore = useSpriteStore.getState();
+    const kittyTextureKey = spriteStore.getTextureKeyForLevel('kitty', 1);
+    if (kittyTextureKey && this.textures.exists(kittyTextureKey)) {
+      this.kitty.sprite.setTexture(kittyTextureKey);
+      const sizes = DEFAULT_DISPLAY_SIZES['kitty'];
+      this.kitty.sprite.setDisplaySize(sizes.customWidth, sizes.customHeight);
+    }
+
+    const doggoTextureKey = spriteStore.getTextureKeyForLevel('doggo', 1);
+    if (doggoTextureKey && this.textures.exists(doggoTextureKey)) {
+      this.doggo.sprite.setTexture(doggoTextureKey);
+      const sizes = DEFAULT_DISPLAY_SIZES['doggo'];
+      this.doggo.sprite.setDisplaySize(sizes.customWidth, sizes.customHeight);
     }
   }
 

@@ -3,7 +3,9 @@ import type { Player } from '../entities/Player';
 import type { Tether } from '../entities/Tether';
 import type { SpawnSystem } from './SpawnSystem';
 import type { WaveSystem } from './WaveSystem';
-import { useGameStore, type UpgradeType } from '../state/gameStore';
+import { useGameStore, type UpgradeType, type PlayerId } from '../state/gameStore';
+import type { SpriteProgressionSystem } from './SpriteProgressionSystem';
+import type { LevelUpVFXSystem } from './LevelUpVFXSystem';
 
 const Matter = Phaser.Physics.Matter.Matter;
 
@@ -15,6 +17,9 @@ export class LevelUpSystem {
   private tether: Tether;
   private spawnSystem: SpawnSystem;
   private waveSystem: WaveSystem;
+  private spriteProgression: SpriteProgressionSystem;
+  private vfxSystem: LevelUpVFXSystem;
+  private keyboardKeys: Phaser.Input.Keyboard.Key[] = [];
 
   constructor(
     scene: Phaser.Scene,
@@ -23,6 +28,8 @@ export class LevelUpSystem {
     tether: Tether,
     spawnSystem: SpawnSystem,
     waveSystem: WaveSystem,
+    spriteProgression: SpriteProgressionSystem,
+    vfxSystem: LevelUpVFXSystem,
   ) {
     this.scene = scene;
     this.kitty = kitty;
@@ -30,6 +37,19 @@ export class LevelUpSystem {
     this.tether = tether;
     this.spawnSystem = spawnSystem;
     this.waveSystem = waveSystem;
+    this.spriteProgression = spriteProgression;
+    this.vfxSystem = vfxSystem;
+
+    // Register keyboard keys 1-5 for upgrade selection
+    if (scene.input.keyboard) {
+      this.keyboardKeys = [
+        scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE),
+        scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO),
+        scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE),
+        scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FOUR),
+        scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FIVE),
+      ];
+    }
   }
 
   update(): void {
@@ -43,11 +63,32 @@ export class LevelUpSystem {
       }
     }
 
-    // Poll for upgrade selection (while in level-up state)
+    // Poll for upgrade selection via keyboard or mouse (while in level-up state)
     if (store.gameState === 'level-up') {
+      // Keyboard input: 1-5 keys
+      this.checkKeyboardSelection();
+
       if (store.selectedUpgrade !== null) {
-        this.applyUpgrade(store.selectedUpgrade);
+        this.applyUpgrade(store.selectedUpgrade, store.upgradingPlayer);
         this.resumeGame();
+      }
+    }
+  }
+
+  private checkKeyboardSelection(): void {
+    const UPGRADE_ORDER: UpgradeType[] = [
+      'tether-length',
+      'damage',
+      'speed',
+      'ammo',
+      'attack-speed',
+    ];
+    for (let i = 0; i < this.keyboardKeys.length; i++) {
+      if (Phaser.Input.Keyboard.JustDown(this.keyboardKeys[i])) {
+        if (i < UPGRADE_ORDER.length) {
+          useGameStore.getState().setSelectedUpgrade(UPGRADE_ORDER[i]);
+        }
+        break;
       }
     }
   }
@@ -55,6 +96,10 @@ export class LevelUpSystem {
   private triggerLevelUp(): void {
     const store = useGameStore.getState();
     store.setGameState('level-up');
+
+    // Randomly pick which player gets to upgrade
+    const chosen: PlayerId = Math.random() < 0.5 ? 'kitty' : 'doggo';
+    store.setUpgradingPlayer(chosen);
 
     // Freeze all active enemies
     for (const enemy of this.spawnSystem.enemies) {
@@ -68,25 +113,31 @@ export class LevelUpSystem {
     this.waveSystem.paused = true;
   }
 
-  private applyUpgrade(upgrade: UpgradeType): void {
+  private applyUpgrade(upgrade: UpgradeType, upgradingPlayer: PlayerId | null): void {
+    const player = upgradingPlayer === 'doggo' ? this.doggo : this.kitty;
+
     switch (upgrade) {
       case 'tether-length':
         this.tether.maxDistance += 50;
         this.tether.restLength += 33;
-        // Update constraint rest length
-        (this.tether as unknown as { constraint: { length: number } }).constraint.length =
-          this.tether.restLength;
         break;
 
       case 'damage':
-        this.kitty.attackDamage += 5;
-        this.doggo.attackDamage += 5;
-        this.tether.clotheslineDamage += 15;
+        player.attackDamage += 5;
+        this.tether.clotheslineDamage += 10;
         break;
 
       case 'speed':
-        this.kitty.movementSpeed += 0.5;
-        this.doggo.movementSpeed += 0.5;
+        player.movementSpeed += 0.5;
+        break;
+
+      case 'ammo':
+        player.maxAmmo += 2;
+        player.ammo = player.maxAmmo;
+        break;
+
+      case 'attack-speed':
+        player.attackCooldown = Math.max(200, player.attackCooldown - 100);
         break;
     }
 
@@ -97,7 +148,17 @@ export class LevelUpSystem {
 
     store.setLevel(newLevel);
     store.setNextLevelThreshold(newThreshold);
+
+    // Trigger sprite progression on level-up
+    if (upgradingPlayer) {
+      this.spriteProgression.onLevelUp(upgradingPlayer, newLevel);
+
+      // Play VFX
+      this.vfxSystem.playLevelUpEffect(player.x, player.y, newLevel, player.sprite);
+    }
+
     store.setSelectedUpgrade(null);
+    store.setUpgradingPlayer(null);
   }
 
   private resumeGame(): void {

@@ -45,12 +45,12 @@ interface GameStore {
   setWaveNumber: (n: number) => void;
 
   // --- Game State ---
-  gameState: "playing" | "level-up" | "game-over";
-  setGameState: (state: GameStore["gameState"]) => void;
+  gameState: 'playing' | 'level-up' | 'game-over';
+  setGameState: (state: GameStore['gameState']) => void;
 
   // --- Level-Up Selection (React → Phaser) ---
-  selectedUpgrade: "tether-length" | "damage" | "speed" | null;
-  setSelectedUpgrade: (u: GameStore["selectedUpgrade"]) => void;
+  selectedUpgrade: 'tether-length' | 'damage' | 'speed' | null;
+  setSelectedUpgrade: (u: GameStore['selectedUpgrade']) => void;
 }
 ```
 
@@ -115,7 +115,8 @@ const CATEGORY = {
 
 // Collision masks: what each category collides WITH
 const MASK = {
-  PLAYER: CATEGORY.PLAYER | CATEGORY.ENEMY | CATEGORY.COIN | CATEGORY.PROJECTILE | CATEGORY.BOUNDARY,
+  PLAYER:
+    CATEGORY.PLAYER | CATEGORY.ENEMY | CATEGORY.COIN | CATEGORY.PROJECTILE | CATEGORY.BOUNDARY,
   // ↑ Includes PLAYER so Player↔Player collision fires (Love Reload)
   ENEMY: CATEGORY.PLAYER | CATEGORY.PROJECTILE | CATEGORY.BOUNDARY,
   // Note: ENEMY does NOT collide with ENEMY (prevents stacking physics overhead)

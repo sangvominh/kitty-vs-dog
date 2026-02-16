@@ -1,47 +1,51 @@
 import { useGameStore, type UpgradeType } from '../game/state/gameStore';
 
-const UPGRADES: { type: UpgradeType; label: string; description: string; emoji: string }[] = [
-  {
-    type: 'tether-length',
-    label: 'Longer Rope',
-    description: 'Max tether distance +50px, rest length +33px',
-    emoji: '🔗',
-  },
-  {
-    type: 'damage',
-    label: 'More Damage',
-    description: 'Attack damage +5, clothesline damage +15',
-    emoji: '⚔️',
-  },
-  {
-    type: 'speed',
-    label: 'Faster Movement',
-    description: 'Movement speed +0.5 for both players',
-    emoji: '💨',
-  },
+const UPGRADES: {
+  type: UpgradeType;
+  label: string;
+  description: string;
+  key: string;
+}[] = [
+  { type: 'tether-length', label: 'Dây dài hơn', description: '+50px', key: '1' },
+  { type: 'damage', label: 'Sát thương', description: 'ATK +5', key: '2' },
+  { type: 'speed', label: 'Tốc độ', description: '+0.5', key: '3' },
+  { type: 'ammo', label: 'Đạn', description: '+2 & nạp đầy', key: '4' },
+  { type: 'attack-speed', label: 'Tốc bắn', description: '-100ms CD', key: '5' },
 ];
+
+const PLAYER_NAMES: Record<string, string> = {
+  kitty: 'Kitty 🐱',
+  doggo: 'Doggo 🐶',
+};
 
 export function LevelUpOverlay() {
   const setSelectedUpgrade = useGameStore((s) => s.setSelectedUpgrade);
   const level = useGameStore((s) => s.level);
+  const upgradingPlayer = useGameStore((s) => s.upgradingPlayer);
 
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 pointer-events-auto">
-      <div className="bg-gray-900/95 rounded-2xl p-8 max-w-2xl w-full mx-4 border border-purple-500/30">
-        <h2 className="text-3xl font-bold text-purple-300 text-center mb-2">Level Up!</h2>
-        <p className="text-gray-400 text-center mb-6">Level {level} — Choose an upgrade:</p>
-        <div className="flex gap-4 justify-center">
-          {UPGRADES.map((upgrade) => (
+    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto">
+      <div className="w-[440px] bg-white/[0.06] backdrop-blur-xl rounded-3xl p-6">
+        <h2 className="text-xl font-semibold text-white/90 text-center mb-1">Level {level}</h2>
+        {upgradingPlayer && (
+          <p className="text-[13px] text-white/40 text-center mb-4">
+            {PLAYER_NAMES[upgradingPlayer]} nâng cấp
+          </p>
+        )}
+        <div className="flex flex-col gap-1.5">
+          {UPGRADES.map((u) => (
             <button
-              key={upgrade.type}
-              onClick={() => setSelectedUpgrade(upgrade.type)}
-              className="flex-1 bg-gray-800 hover:bg-gray-700 border border-purple-500/40 hover:border-purple-400 rounded-xl p-5 transition-all cursor-pointer group"
+              key={u.type}
+              onClick={() => setSelectedUpgrade(u.type)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] transition-colors text-left"
             >
-              <div className="text-3xl mb-2">{upgrade.emoji}</div>
-              <h3 className="text-white font-bold text-lg mb-1 group-hover:text-purple-300">
-                {upgrade.label}
-              </h3>
-              <p className="text-gray-400 text-sm">{upgrade.description}</p>
+              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-[12px] text-white/50 font-mono shrink-0">
+                {u.key}
+              </span>
+              <div className="flex-1">
+                <span className="text-[14px] text-white/80 font-medium">{u.label}</span>
+                <span className="text-[12px] text-white/30 ml-2">{u.description}</span>
+              </div>
             </button>
           ))}
         </div>

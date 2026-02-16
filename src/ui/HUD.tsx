@@ -1,4 +1,6 @@
 import { useGameStore } from '../game/state/gameStore';
+import { useSettingsStore } from '../lib/settingsStore';
+import { getDifficulty } from '../game/state/difficultyConfig';
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -7,31 +9,14 @@ function formatTime(ms: number): string {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-function HealthBar({ current, max }: { current: number; max: number }) {
-  const percentage = Math.max(0, (current / max) * 100);
-  const barColor =
-    percentage > 60 ? 'bg-green-500' : percentage > 30 ? 'bg-yellow-500' : 'bg-red-500';
-
+function Bar({ value, max, color }: { value: number; max: number; color: string }) {
+  const pct = Math.max(0, Math.min(100, (value / max) * 100));
   return (
-    <div className="w-48 h-4 bg-gray-700 rounded-full overflow-hidden border border-gray-500">
+    <div className="w-28 h-1.5 rounded-full bg-white/10 overflow-hidden">
       <div
-        className={`h-full ${barColor} transition-all duration-200`}
-        style={{ width: `${percentage}%` }}
+        className="h-full rounded-full transition-all duration-300"
+        style={{ width: `${pct}%`, backgroundColor: color }}
       />
-    </div>
-  );
-}
-
-function AmmoDisplay({ label, current, max }: { label: string; current: number; max: number }) {
-  const isEmpty = current === 0;
-  return (
-    <div
-      className={`flex items-center gap-1 ${isEmpty ? 'animate-pulse text-red-400' : 'text-white'}`}
-    >
-      <span>{label}</span>
-      <span className="font-mono text-sm">
-        {current}/{max}
-      </span>
     </div>
   );
 }
@@ -46,45 +31,79 @@ export function HUD() {
   const coins = useGameStore((s) => s.coins);
   const level = useGameStore((s) => s.level);
   const nextLevelThreshold = useGameStore((s) => s.nextLevelThreshold);
+  const tetherDurability = useGameStore((s) => s.tetherDurability);
+  const maxTetherDurability = useGameStore((s) => s.maxTetherDurability);
+  const tetherBroken = useGameStore((s) => s.tetherBroken);
+  const playersTouching = useGameStore((s) => s.playersTouching);
+  const difficultyId = useSettingsStore((s) => s.difficultyId);
+  const diff = getDifficulty(difficultyId);
+
+  const healthPct = maxHealth > 0 ? health / maxHealth : 0;
+  const healthColor = healthPct > 0.6 ? '#4ade80' : healthPct > 0.3 ? '#facc15' : '#f87171';
 
   return (
-    <div className="absolute inset-0 z-10 pointer-events-none p-4">
+    <div className="absolute inset-0 z-10 pointer-events-none p-3">
       <div className="flex justify-between items-start">
-        {/* Left: Health + Wave */}
-        <div className="flex flex-col gap-1">
+        {/* Left */}
+        <div className="flex flex-col gap-1.5 bg-black/30 backdrop-blur-md rounded-xl px-3 py-2">
           <div className="flex items-center gap-2">
-            <span className="text-red-400 text-sm font-bold">HP</span>
-            <HealthBar current={health} max={maxHealth} />
-            <span className="text-white text-xs">
-              {health}/{maxHealth}
+            <span className="text-[11px] text-white/50 w-6">HP</span>
+            <Bar value={health} max={maxHealth} color={healthColor} />
+            <span className="text-[11px] text-white/50 font-mono">{health}</span>
+            {playersTouching && !tetherBroken && (
+              <span className="text-[10px] text-white/40 animate-pulse">healing</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-white/50 w-6">🔗</span>
+            {tetherBroken ? (
+              <span className="text-[10px] text-red-400/80">broken</span>
+            ) : (
+              <>
+                <Bar value={tetherDurability} max={maxTetherDurability} color="#f9a8d4" />
+                <span className="text-[11px] text-white/40 font-mono">{tetherDurability}</span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-white/50">
+            <span>W{waveNumber}</span>
+            <span className="text-white/20">·</span>
+            <span>
+              {diff.icon} {diff.name}
             </span>
           </div>
-          <span className="text-blue-300 text-sm font-semibold">Wave {waveNumber}</span>
         </div>
 
-        {/* Center: Timer */}
-        <div className="text-white text-xl font-mono font-bold">{formatTime(elapsedTime)}</div>
+        {/* Center */}
+        <div className="flex flex-col items-center bg-black/30 backdrop-blur-md rounded-xl px-4 py-2">
+          <span className="text-white/80 text-lg font-mono font-medium tracking-wide">
+            {formatTime(elapsedTime)}
+          </span>
+          {playersTouching && !tetherBroken && (
+            <span className="text-[10px] text-white/30">ATK -60%</span>
+          )}
+        </div>
 
-        {/* Right: Ammo + Coins + Level */}
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex gap-4">
-            <AmmoDisplay label="🐱" current={kittyAmmo} max={10} />
-            <AmmoDisplay label="🐶" current={doggoStamina} max={8} />
+        {/* Right */}
+        <div className="flex flex-col gap-1.5 items-end bg-black/30 backdrop-blur-md rounded-xl px-3 py-2">
+          <div className="flex items-center gap-3 text-[12px]">
+            <span className="text-white/50">
+              🐱 <span className="font-mono text-white/70">{kittyAmmo}</span>
+            </span>
+            <span className="text-white/50">
+              🐶 <span className="font-mono text-white/70">{doggoStamina}</span>
+            </span>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-yellow-400 font-bold">🪙 {coins}</span>
-            <div className="flex items-center gap-2">
-              <span className="text-purple-300 text-sm font-semibold">Lv.{level}</span>
-              <div className="w-24 h-2 bg-gray-700 rounded-full overflow-hidden border border-gray-500">
-                <div
-                  className="h-full bg-purple-500 transition-all duration-200"
-                  style={{ width: `${Math.min(100, (coins / nextLevelThreshold) * 100)}%` }}
-                />
-              </div>
-              <span className="text-gray-400 text-xs">
-                {coins}/{nextLevelThreshold}
-              </span>
-            </div>
+          <div className="flex items-center gap-2 text-[12px]">
+            <span className="text-white/50 font-mono">{coins} coins</span>
+            <span className="text-white/20">·</span>
+            <span className="text-white/50">Lv.{level}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Bar value={coins} max={nextLevelThreshold} color="#a78bfa" />
+            <span className="text-[10px] text-white/30 font-mono">
+              {coins}/{nextLevelThreshold}
+            </span>
           </div>
         </div>
       </div>

@@ -24,7 +24,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   },
   scene: [BootScene, GameScene, GameOverScene],
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.ENVELOP,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
 };

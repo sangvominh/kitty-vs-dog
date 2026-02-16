@@ -27,6 +27,7 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #0f0f23;
+  width: 100vw;
+  background-color: #1a1a2e;
   overflow: hidden;
 }
