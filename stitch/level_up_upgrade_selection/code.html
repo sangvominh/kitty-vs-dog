@@ -1,0 +1,220 @@
+<html lang="vi"><head>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/></head><body class="font-display bg-background-light dark:bg-background-dark text-slate-800 h-screen overflow-hidden selection:bg-primary selection:text-white">```html
+
+
+
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Level Up Upgrade Selection - Kitty vs MSmini</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2b8cee",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                },
+            },
+        }
+    </script>
+<style>/* Custom styles for the glassmorphism effect */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 32px 0 rgba(43, 140, 238, 0.15)
+    }
+.glass-card {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+    }
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translatey(-8px) scale(1.02);
+    border-color: #2b8cee;
+    box-shadow: 0 20px 40px -10px rgba(43, 140, 238, 0.3)
+    }
+/* Persistent glow animation */
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(43, 140, 238, 0.2);
+        } 50% {
+        box-shadow: 0 0 25px rgba(43, 140, 238, 0.5);
+        }
+    }
+.glow-effect {
+    animation: pulse-glow 3s infinite
+    }
+/* Background pattern for the 'game' simulation */
+.game-bg {
+    background-image: radial-gradient(at 0% 0%, hsla(210, 100%, 96%, 1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(210, 100%, 92%, 1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(210, 100%, 96%, 1) 0, transparent 50%);
+    position: relative
+    }
+.game-bg::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuCyAUbxqd0xoH_dTq3nHctjzB8k1LcHgAaiYhW_Bdk3-gGsZiR6r2D5qNENhfBeH68XnVTydMHSDTjjQefCgHvbFjXJmykFIuB9iw45bm--euSZso1WgE7WweMDgdiQAgxj8TOCz6YPX0bxygSeUmbsUUUXHFG0ZVp1hIZ-AmdVaOl-bYAaRVtXTxy1wWy4bMykjApi5eI4aTDslDn5lYABXDXaxfAMSrgJVHWqP6WDIsXk7tqwRsDWfs3SXbVJDEj-GfCjM3gH7cY);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.8;
+    z-index: 0;
+    filter: blur(4px)
+    }</style>
+<!-- Game Background Simulation -->
+<div class="game-bg w-full h-full flex items-center justify-center p-4 md:p-8" data-alt="Abstract colorful 2D game world background">
+<!-- Overlay Container -->
+<div class="relative z-10 w-full max-w-[1400px] flex flex-col items-center">
+<!-- Title Section -->
+<div class="mb-12 text-center relative">
+<div class="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-150"></div>
+<h1 class="relative text-6xl md:text-8xl font-extrabold text-white drop-shadow-[0_4px_4px_rgba(43,140,238,0.8)] tracking-tight uppercase" style="-webkit-text-stroke: 2px #2b8cee;">
+                    Level Up!
+                </h1>
+<p class="relative mt-2 text-white font-bold text-xl drop-shadow-md">Chọn một nâng cấp để tiếp tục</p>
+</div>
+<!-- Cards Container -->
+<div class="w-full grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 items-stretch">
+<!-- Card 1: Utility -->
+<div class="glass-card rounded-lg p-6 flex flex-col items-center text-center relative group cursor-pointer h-full glow-effect ring-4 ring-transparent hover:ring-primary/20">
+<div class="absolute top-4 right-4 bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wide">
+                        Thường
+                    </div>
+<div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-4 border-primary/10 group-hover:border-primary group-hover:scale-110 transition-all duration-300">
+<span class="material-icons-round text-5xl text-primary">all_inclusive</span>
+</div>
+<h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-primary transition-colors">Dây dài hơn</h3>
+<p class="text-slate-500 text-sm mb-6 flex-grow">Tăng phạm vi tấn công thêm <strong class="text-primary">15%</strong>. Giúp bạn đánh xa hơn.</p>
+<div class="w-full mt-auto space-y-4">
+<div class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-400 bg-white/50 rounded-lg p-2">
+<span>Phạm vi</span>
+<span class="text-green-600 text-right">+15%</span>
+</div>
+<button class="w-full bg-primary text-white font-bold py-3 rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:bg-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2">
+<span>Chọn</span>
+<div class="bg-white/20 px-2 py-0.5 rounded text-xs font-mono">1</div>
+</button>
+</div>
+</div>
+<!-- Card 2: Offense -->
+<div class="glass-card rounded-lg p-6 flex flex-col items-center text-center relative group cursor-pointer h-full glow-effect ring-4 ring-transparent hover:ring-primary/20">
+<div class="absolute top-4 right-4 bg-orange-100 text-orange-600 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wide">
+                        Hiếm
+                    </div>
+<div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-4 border-orange-100 group-hover:border-orange-500 group-hover:scale-110 transition-all duration-300">
+<span class="material-icons-round text-5xl text-orange-500">swords</span>
+</div>
+<h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-orange-500 transition-colors">Sát thương</h3>
+<p class="text-slate-500 text-sm mb-6 flex-grow">Tăng sức mạnh đòn đánh thêm <strong class="text-orange-500">5 điểm</strong>. Tiêu diệt quái nhanh hơn.</p>
+<div class="w-full mt-auto space-y-4">
+<div class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-400 bg-white/50 rounded-lg p-2">
+<span>Damage</span>
+<span class="text-green-600 text-right">+5</span>
+</div>
+<button class="w-full bg-primary text-white font-bold py-3 rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:bg-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2">
+<span>Chọn</span>
+<div class="bg-white/20 px-2 py-0.5 rounded text-xs font-mono">2</div>
+</button>
+</div>
+</div>
+<!-- Card 3: Speed -->
+<div class="glass-card rounded-lg p-6 flex flex-col items-center text-center relative group cursor-pointer h-full glow-effect ring-4 ring-transparent hover:ring-primary/20">
+<div class="absolute top-4 right-4 bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wide">
+                        Thường
+                    </div>
+<div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-4 border-primary/10 group-hover:border-primary group-hover:scale-110 transition-all duration-300">
+<span class="material-icons-round text-5xl text-primary">bolt</span>
+</div>
+<h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-primary transition-colors">Tốc độ</h3>
+<p class="text-slate-500 text-sm mb-6 flex-grow">Di chuyển nhanh như gió. Tốc độ tăng thêm <strong class="text-primary">10%</strong>.</p>
+<div class="w-full mt-auto space-y-4">
+<div class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-400 bg-white/50 rounded-lg p-2">
+<span>Speed</span>
+<span class="text-green-600 text-right">+10%</span>
+</div>
+<button class="w-full bg-primary text-white font-bold py-3 rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:bg-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2">
+<span>Chọn</span>
+<div class="bg-white/20 px-2 py-0.5 rounded text-xs font-mono">3</div>
+</button>
+</div>
+</div>
+<!-- Card 4: Defense -->
+<div class="glass-card rounded-lg p-6 flex flex-col items-center text-center relative group cursor-pointer h-full glow-effect ring-4 ring-transparent hover:ring-primary/20">
+<div class="absolute top-4 right-4 bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wide">
+                        Thường
+                    </div>
+<div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-4 border-primary/10 group-hover:border-primary group-hover:scale-110 transition-all duration-300">
+<span class="material-icons-round text-5xl text-primary">shield</span>
+</div>
+<h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-primary transition-colors">Giáp</h3>
+<p class="text-slate-500 text-sm mb-6 flex-grow">Da dày thịt béo. Giảm sát thương nhận vào, tăng <strong class="text-primary">2 Armor</strong>.</p>
+<div class="w-full mt-auto space-y-4">
+<div class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-400 bg-white/50 rounded-lg p-2">
+<span>Armor</span>
+<span class="text-green-600 text-right">+2</span>
+</div>
+<button class="w-full bg-primary text-white font-bold py-3 rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:bg-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2">
+<span>Chọn</span>
+<div class="bg-white/20 px-2 py-0.5 rounded text-xs font-mono">4</div>
+</button>
+</div>
+</div>
+<!-- Card 5: Special -->
+<div class="glass-card rounded-lg p-6 flex flex-col items-center text-center relative group cursor-pointer h-full glow-effect ring-4 ring-transparent hover:ring-primary/20">
+<div class="absolute top-4 right-4 bg-pink-100 text-pink-500 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wide">
+                        Hồi phục
+                    </div>
+<div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-4 border-pink-100 group-hover:border-pink-500 group-hover:scale-110 transition-all duration-300">
+<span class="material-icons-round text-5xl text-pink-500">favorite</span>
+</div>
+<h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-pink-500 transition-colors">Hồi máu</h3>
+<p class="text-slate-500 text-sm mb-6 flex-grow">Hồi phục ngay lập tức <strong class="text-pink-500">20 HP</strong>. Cứu nguy khẩn cấp.</p>
+<div class="w-full mt-auto space-y-4">
+<div class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-400 bg-white/50 rounded-lg p-2">
+<span>Heal</span>
+<span class="text-green-600 text-right">20 HP</span>
+</div>
+<button class="w-full bg-primary text-white font-bold py-3 rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:bg-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2">
+<span>Chọn</span>
+<div class="bg-white/20 px-2 py-0.5 rounded text-xs font-mono">5</div>
+</button>
+</div>
+</div>
+</div>
+<!-- Secondary Actions -->
+<div class="mt-10 flex gap-4">
+<button class="glass-panel px-6 py-3 rounded-full text-slate-600 font-bold text-sm hover:bg-white hover:text-primary transition-colors flex items-center gap-2">
+<span class="material-icons-round text-lg">refresh</span>
+                    Đổi lại (Reroll)
+                </button>
+<button class="glass-panel px-6 py-3 rounded-full text-slate-600 font-bold text-sm hover:bg-white hover:text-red-500 transition-colors flex items-center gap-2">
+<span class="material-icons-round text-lg">skip_next</span>
+                    Bỏ qua (Skip)
+                </button>
+</div>
+</div>
+</div>
+</body></html>

@@ -5,6 +5,7 @@
  */
 import { get, set } from 'idb-keyval';
 import { DEFAULT_DIFFICULTY, type DifficultyId } from '../game/state/difficultyConfig';
+import type { DataSource } from '../game/state/spriteTypes';
 
 const SETTINGS_KEY = 'game-settings';
 
@@ -18,6 +19,8 @@ export interface GameSettings {
   bestWaves: Partial<Record<DifficultyId, number>>;
   /** Sound enabled flag (future-proof) */
   soundEnabled: boolean;
+  /** Sprite data source: browser cache (IndexedDB) or local-data folder */
+  dataSource: DataSource;
 }
 
 const DEFAULT_SETTINGS: GameSettings = {
@@ -26,6 +29,7 @@ const DEFAULT_SETTINGS: GameSettings = {
   gamesPlayed: 0,
   bestWaves: {},
   soundEnabled: true,
+  dataSource: 'cache',
 };
 
 /** Load settings from IndexedDB. Returns defaults if nothing saved. */
@@ -66,5 +70,12 @@ export async function recordGameEnd(waveReached: number, difficulty: DifficultyI
   if (waveReached > prevBest) {
     current.bestWaves[difficulty] = waveReached;
   }
+  await saveSettings(current);
+}
+
+/** Save only the data source setting */
+export async function saveDataSource(dataSource: DataSource): Promise<void> {
+  const current = await loadSettings();
+  current.dataSource = dataSource;
   await saveSettings(current);
 }

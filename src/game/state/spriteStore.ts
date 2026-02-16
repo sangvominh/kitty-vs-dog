@@ -1,11 +1,12 @@
 /**
  * Zustand store for sprite configuration.
- * Bridges React UI ↔ Phaser game for custom sprite management.
+ * Bridges React UI ↔ Phaser game for action-based custom sprite management.
+ * Supports both cache (IndexedDB) and local-data sources.
  */
 
 import { create } from 'zustand';
-import type { EntityId, SpriteConfig, CustomImage } from './spriteTypes';
-import { createEmptySpriteConfig } from './spriteTypes';
+import type { EntityId, ActionState, SpriteConfig, ActionImage } from './spriteTypes';
+import { createEmptySpriteConfig, createEmptyLevel, textureKeyFor } from './spriteTypes';
 import { validateImageFile, decodeImageDimensions } from '../../lib/imageValidator';
 import {
   saveConfig,
@@ -19,21 +20,34 @@ export interface SpriteStoreState {
   // Config data (persisted to IndexedDB)
   config: SpriteConfig;
 
-  // Runtime state (not persisted)
+  // Runtime state
   isLoaded: boolean;
-  loadingSlot: EntityId | null;
+  loadingSlot: string | null; // "entityId-levelIndex-action"
   errorMessage: string | null;
 
-  // Actions
+  // Actions — config
   loadConfig: () => Promise<void>;
-  addImage: (entityId: EntityId, file: File) => Promise<void>;
-  removeImage: (entityId: EntityId, imageId: string) => Promise<void>;
-  reorderImages: (entityId: EntityId, fromIndex: number, toIndex: number) => void;
-  clearSlot: (entityId: EntityId) => Promise<void>;
-  getTextureKeyForLevel: (entityId: EntityId, level: number) => string | null;
-  getTextureKeyForWave: (entityId: EntityId, wave: number) => string | null;
-  getRandomTextureKeyForWave: (entityId: EntityId, wave: number) => string | null;
+  setActionImage: (
+    entityId: EntityId,
+    levelIndex: number,
+    action: ActionState,
+    file: File,
+  ) => Promise<void>;
+  removeActionImage: (entityId: EntityId, levelIndex: number, action: ActionState) => Promise<void>;
+  clearLevel: (entityId: EntityId, levelIndex: number) => Promise<void>;
+
+  // Actions — boss levels
+  addBossLevel: () => void;
+  removeBossLevel: (levelIndex: number) => Promise<void>;
+
+  // Queries
+  getTextureKey: (entityId: EntityId, levelIndex: number, action: ActionState) => string | null;
   getImageBlob: (imageId: string) => Promise<Blob | null>;
+  getActionImage: (
+    entityId: EntityId,
+    levelIndex: number,
+    action: ActionState,
+  ) => ActionImage | null;
 }
 
 /** Generate a short unique ID */
@@ -56,195 +70,165 @@ export const useSpriteStore = create<SpriteStoreState>((set, get) => ({
   loadConfig: async () => {
     try {
       const saved = await loadConfigFromDB();
-      if (saved) {
+      if (saved && saved.version === 2) {
         set({ config: saved, isLoaded: true, errorMessage: null });
       } else {
-        set({ config: createEmptySpriteConfig(), isLoaded: true, errorMessage: null });
+        // Version mismatch or no data — start fresh
+        const fresh = createEmptySpriteConfig();
+        set({ config: fresh, isLoaded: true, errorMessage: null });
       }
     } catch (err) {
       console.error('[spriteStore] Failed to load config:', err);
       set({
         config: createEmptySpriteConfig(),
         isLoaded: true,
-        errorMessage: 'Failed to load sprite configuration',
+        errorMessage: 'Không tải được cấu hình sprite',
       });
     }
   },
 
-  addImage: async (entityId: EntityId, file: File) => {
-    // Validate file metadata
+  setActionImage: async (entityId, levelIndex, action, file) => {
     const validation = validateImageFile(file);
     if (!validation.valid) {
-      set({ errorMessage: validation.error ?? 'Invalid file' });
+      set({ errorMessage: validation.error ?? 'File không hợp lệ' });
       return;
     }
 
-    set({ loadingSlot: entityId, errorMessage: null });
+    const slotKey = `${entityId}-${levelIndex}-${action}`;
+    set({ loadingSlot: slotKey, errorMessage: null });
 
     try {
-      // Decode image to get dimensions
       const dims = await decodeImageDimensions(file);
-
-      // Generate unique ID
-      const imageId = `${entityId}-${nanoid(8)}`;
-      const blobKey = `blob:${imageId}`;
-      const order = get().config.slots[entityId].images.length;
-      const textureKey = `${entityId}-custom-${order}`;
+      const imageId = `${entityId}-${levelIndex}-${action}-${nanoid(6)}`;
+      const tKey = textureKeyFor(entityId, levelIndex, action);
 
       // Store blob
       const blob = new Blob([await file.arrayBuffer()], { type: file.type });
       await saveImageBlob(imageId, blob);
 
-      // Create image record
-      const customImage: CustomImage = {
+      const actionImage: ActionImage = {
         id: imageId,
         fileName: file.name,
         mimeType: file.type,
         fileSize: file.size,
         width: dims.width,
         height: dims.height,
-        blobKey,
-        textureKey,
-        order,
+        blobKey: `blob:${imageId}`,
+        textureKey: tKey,
         createdAt: Date.now(),
       };
 
-      // Update config
-      const config = { ...get().config };
-      const slot = { ...config.slots[entityId] };
-      slot.images = [...slot.images, customImage];
-      config.slots = { ...config.slots, [entityId]: slot };
+      // Delete old blob if replacing
+      const config = structuredClone(get().config);
+      const oldImage = config.slots[entityId].levels[levelIndex]?.actions[action];
+      if (oldImage) {
+        await deleteImageBlob(oldImage.id).catch(() => {});
+      }
+
+      // Ensure level exists
+      while (config.slots[entityId].levels.length <= levelIndex) {
+        config.slots[entityId].levels.push(createEmptyLevel());
+      }
+
+      config.slots[entityId].levels[levelIndex].actions[action] = actionImage;
+      config.lastModified = Date.now();
 
       await saveConfig(config);
       set({ config, loadingSlot: null, errorMessage: null });
     } catch (err) {
-      console.error('[spriteStore] Failed to add image:', err);
+      console.error('[spriteStore] Failed to set action image:', err);
       set({
         loadingSlot: null,
-        errorMessage: err instanceof Error ? err.message : 'Failed to upload image',
+        errorMessage: err instanceof Error ? err.message : 'Tải ảnh thất bại',
       });
     }
   },
 
-  removeImage: async (entityId: EntityId, imageId: string) => {
+  removeActionImage: async (entityId, levelIndex, action) => {
     try {
-      // Delete blob
-      await deleteImageBlob(imageId);
+      const config = structuredClone(get().config);
+      const level = config.slots[entityId].levels[levelIndex];
+      if (!level) return;
 
-      // Update config
-      const config = { ...get().config };
-      const slot = { ...config.slots[entityId] };
-      slot.images = slot.images
-        .filter((img) => img.id !== imageId)
-        .map((img, index) => ({
-          ...img,
-          order: index,
-          textureKey: `${entityId}-custom-${index}`,
-        }));
-      config.slots = { ...config.slots, [entityId]: slot };
-
-      await saveConfig(config);
-      set({ config, errorMessage: null });
+      const image = level.actions[action];
+      if (image) {
+        await deleteImageBlob(image.id);
+        delete level.actions[action];
+        config.lastModified = Date.now();
+        await saveConfig(config);
+        set({ config, errorMessage: null });
+      }
     } catch (err) {
-      console.error('[spriteStore] Failed to remove image:', err);
-      set({ errorMessage: 'Failed to remove image' });
+      console.error('[spriteStore] Failed to remove action image:', err);
+      set({ errorMessage: 'Xóa ảnh thất bại' });
     }
   },
 
-  reorderImages: (entityId: EntityId, fromIndex: number, toIndex: number) => {
-    const config = { ...get().config };
-    const slot = { ...config.slots[entityId] };
-    const images = [...slot.images];
-
-    // Splice to reorder
-    const [moved] = images.splice(fromIndex, 1);
-    images.splice(toIndex, 0, moved);
-
-    // Re-index
-    slot.images = images.map((img, index) => ({
-      ...img,
-      order: index,
-      textureKey: `${entityId}-custom-${index}`,
-    }));
-    config.slots = { ...config.slots, [entityId]: slot };
-
-    set({ config });
-
-    // Persist (debounced — fire and forget)
-    saveConfig(config).catch((err) =>
-      console.warn('[spriteStore] Failed to persist reorder:', err),
-    );
-  },
-
-  clearSlot: async (entityId: EntityId) => {
+  clearLevel: async (entityId, levelIndex) => {
     try {
-      const config = { ...get().config };
-      const slot = config.slots[entityId];
+      const config = structuredClone(get().config);
+      const level = config.slots[entityId].levels[levelIndex];
+      if (!level) return;
 
-      // Delete all blobs for this slot
-      for (const img of slot.images) {
-        await deleteImageBlob(img.id);
+      for (const img of Object.values(level.actions)) {
+        if (img) await deleteImageBlob(img.id);
       }
 
-      // Clear images
-      const newSlot = { ...slot, images: [] };
-      config.slots = { ...config.slots, [entityId]: newSlot };
-
+      level.actions = {};
+      config.lastModified = Date.now();
       await saveConfig(config);
       set({ config, errorMessage: null });
     } catch (err) {
-      console.error('[spriteStore] Failed to clear slot:', err);
-      set({ errorMessage: 'Failed to clear slot' });
+      console.error('[spriteStore] Failed to clear level:', err);
+      set({ errorMessage: 'Xóa level thất bại' });
     }
   },
 
-  getTextureKeyForLevel: (entityId: EntityId, level: number): string | null => {
-    const images = get().config.slots[entityId].images;
-    if (images.length === 0) return null;
-    const index = Math.min(level - 1, images.length - 1);
-    return images[index].textureKey;
+  addBossLevel: () => {
+    const config = structuredClone(get().config);
+    config.slots.boss.levels.push(createEmptyLevel());
+    config.lastModified = Date.now();
+    set({ config });
+    saveConfig(config).catch(console.warn);
   },
 
-  getTextureKeyForWave: (entityId: EntityId, wave: number): string | null => {
-    const images = get().config.slots[entityId].images;
-    if (images.length === 0) return null;
-    const index = Math.min(Math.floor((wave - 1) / 2), images.length - 1);
-    return images[index].textureKey;
-  },
+  removeBossLevel: async (levelIndex) => {
+    try {
+      const config = structuredClone(get().config);
+      const levels = config.slots.boss.levels;
+      if (levels.length <= 1) return; // keep at least 1 level
 
-  /**
-   * Weighted-random texture selection for enemies.
-   * Each spawn picks randomly from the sprite pool for that entity type.
-   * The "preferred" image (based on wave) has the highest weight,
-   * and earlier/later images are still possible but less likely.
-   */
-  getRandomTextureKeyForWave: (entityId: EntityId, wave: number): string | null => {
-    const images = get().config.slots[entityId].images;
-    if (images.length === 0) return null;
-    if (images.length === 1) return images[0].textureKey;
+      const level = levels[levelIndex];
+      if (level) {
+        for (const img of Object.values(level.actions)) {
+          if (img) await deleteImageBlob(img.id);
+        }
+      }
 
-    // Preferred index based on wave progression (same formula as deterministic)
-    const preferred = Math.min(Math.floor((wave - 1) / 2), images.length - 1);
-
-    // Build weights: preferred gets highest, decreasing with distance
-    const weights: number[] = [];
-    for (let i = 0; i < images.length; i++) {
-      weights.push(Math.max(1, images.length - Math.abs(i - preferred)));
+      levels.splice(levelIndex, 1);
+      config.lastModified = Date.now();
+      await saveConfig(config);
+      set({ config, errorMessage: null });
+    } catch (err) {
+      console.error('[spriteStore] Failed to remove boss level:', err);
+      set({ errorMessage: 'Xóa boss level thất bại' });
     }
-
-    // Weighted random selection
-    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-    let roll = Math.random() * totalWeight;
-    for (let i = 0; i < weights.length; i++) {
-      roll -= weights[i];
-      if (roll <= 0) return images[i].textureKey;
-    }
-
-    // Fallback (shouldn't reach here)
-    return images[preferred].textureKey;
   },
 
-  getImageBlob: async (imageId: string): Promise<Blob | null> => {
+  getTextureKey: (entityId, levelIndex, action) => {
+    const level = get().config.slots[entityId]?.levels[levelIndex];
+    if (!level) return null;
+    const image = level.actions[action];
+    return image?.textureKey ?? null;
+  },
+
+  getActionImage: (entityId, levelIndex, action) => {
+    const level = get().config.slots[entityId]?.levels[levelIndex];
+    if (!level) return null;
+    return level.actions[action] ?? null;
+  },
+
+  getImageBlob: async (imageId) => {
     return loadImageBlob(imageId);
   },
 }));

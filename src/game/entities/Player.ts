@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config';
 import { CATEGORY, MASK } from './CollisionCategories';
+import type { ActionState } from '../state/spriteTypes';
 
 export type PlayerId = 'kitty' | 'doggo';
 export type PlayerRole = 'ranged' | 'melee';
@@ -42,6 +43,12 @@ export class Player {
 
   // Attack range visual indicator
   private rangeIndicator: Phaser.GameObjects.Graphics | null = null;
+
+  // ── Action State Tracking ──
+  public currentAction: ActionState = 'idle';
+  /** Timestamp when a temporary action (attack/hurt) should revert to idle/run */
+  private actionRevertTime: number = 0;
+  private readonly ACTION_REVERT_DELAY = 300; // ms for attack/hurt animation
 
   constructor(scene: Phaser.Scene, config: PlayerConfig) {
     this.scene = scene;
@@ -123,11 +130,40 @@ export class Player {
       Phaser.Physics.Matter.Matter.Body.setPosition(this.body, { x, y });
     }
 
+    // Update action state based on movement/temporary actions
+    this.updateActionState(time);
+
     // Show empty weapon indicator
     this.updateEmptyIndicator(time);
 
     // Draw attack range circle
     this.updateRangeIndicator();
+  }
+
+  /**
+   * Set a temporary action (attack/hurt) that auto-reverts after a delay.
+   */
+  setTemporaryAction(action: 'attack' | 'hurt', time: number): void {
+    this.currentAction = action;
+    this.actionRevertTime = time + this.ACTION_REVERT_DELAY;
+  }
+
+  /**
+   * Determine current action state from physics state and temporary actions.
+   */
+  private updateActionState(time: number): void {
+    // If a temporary action is active, check if it should revert
+    if (this.currentAction === 'attack' || this.currentAction === 'hurt') {
+      if (time < this.actionRevertTime) return; // still in temporary action
+      // Revert
+    }
+
+    // Determine from velocity
+    const vx = this.body.velocity.x;
+    const vy = this.body.velocity.y;
+    const speed = Math.sqrt(vx * vx + vy * vy);
+
+    this.currentAction = speed > 0.3 ? 'run' : 'idle';
   }
 
   private updateRangeIndicator(): void {

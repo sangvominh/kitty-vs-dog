@@ -1,19 +1,37 @@
 /**
- * Shared type definitions for the custom sprite system.
- * Defines entities, configuration interfaces, and constants.
+ * Type definitions for the action-based custom sprite system.
+ * Entities: kitty, doggo (players), boss (multiple levels).
+ * Each level has 6 action states: idle, run, jump, attack, hurt, death.
  */
 
-// ── Entity IDs ──
+// ── Action States ──
 
-export type EntityId = 'kitty' | 'doggo' | 'enemy-bill' | 'enemy-deadline' | 'enemy-ex-lover';
+export const ACTION_STATES = ['idle', 'run', 'jump', 'attack', 'hurt', 'death'] as const;
+export type ActionState = (typeof ACTION_STATES)[number];
 
-export const ENTITY_IDS: EntityId[] = [
-  'kitty',
-  'doggo',
-  'enemy-bill',
-  'enemy-deadline',
-  'enemy-ex-lover',
-];
+export const ACTION_LABELS: Record<ActionState, string> = {
+  idle: 'Đứng yên',
+  run: 'Chạy',
+  jump: 'Nhảy',
+  attack: 'Tấn công',
+  hurt: 'Chịu đòn',
+  death: 'Chết',
+};
+
+export const ACTION_ICONS: Record<ActionState, string> = {
+  idle: 'accessibility_new',
+  run: 'directions_run',
+  jump: 'swap_vert',
+  attack: 'flash_on',
+  hurt: 'heart_broken',
+  death: 'dangerous',
+};
+
+// ── Entity IDs (customizable entities only) ──
+
+export type EntityId = 'kitty' | 'doggo' | 'boss';
+
+export const ENTITY_IDS: EntityId[] = ['kitty', 'doggo', 'boss'];
 
 // ── Display Size Configuration ──
 
@@ -27,14 +45,12 @@ export interface DisplaySizeConfig {
 export const DEFAULT_DISPLAY_SIZES: Record<EntityId, DisplaySizeConfig> = {
   kitty: { defaultWidth: 32, defaultHeight: 32, customWidth: 48, customHeight: 48 },
   doggo: { defaultWidth: 32, defaultHeight: 32, customWidth: 48, customHeight: 48 },
-  'enemy-bill': { defaultWidth: 28, defaultHeight: 28, customWidth: 40, customHeight: 40 },
-  'enemy-deadline': { defaultWidth: 24, defaultHeight: 24, customWidth: 36, customHeight: 36 },
-  'enemy-ex-lover': { defaultWidth: 48, defaultHeight: 48, customWidth: 64, customHeight: 64 },
+  boss: { defaultWidth: 48, defaultHeight: 48, customWidth: 64, customHeight: 64 },
 };
 
-// ── Custom Image ──
+// ── Action Image (one image per action slot) ──
 
-export interface CustomImage {
+export interface ActionImage {
   id: string;
   fileName: string;
   mimeType: string;
@@ -43,16 +59,20 @@ export interface CustomImage {
   height: number;
   blobKey: string;
   textureKey: string;
-  order: number;
   createdAt: number;
 }
 
-// ── Sprite Slot ──
+// ── Sprite Level (6 action slots) ──
+
+export interface SpriteLevel {
+  actions: Partial<Record<ActionState, ActionImage>>;
+}
+
+// ── Sprite Slot (per entity) ──
 
 export interface SpriteSlot {
   entityId: EntityId;
-  images: CustomImage[];
-  progressionType: 'level' | 'wave';
+  levels: SpriteLevel[];
   displayWidth: number;
   displayHeight: number;
 }
@@ -119,15 +139,17 @@ export const TIER_CONFIG: LevelTier[] = [
   },
 ];
 
-// ── Factory ──
+// ── Factories ──
 
-function createEmptySpriteSlot(entityId: EntityId): SpriteSlot {
+export function createEmptyLevel(): SpriteLevel {
+  return { actions: {} };
+}
+
+function createEmptySlot(entityId: EntityId): SpriteSlot {
   const sizes = DEFAULT_DISPLAY_SIZES[entityId];
-  const isCharacter = entityId === 'kitty' || entityId === 'doggo';
   return {
     entityId,
-    images: [],
-    progressionType: isCharacter ? 'level' : 'wave',
+    levels: [createEmptyLevel()],
     displayWidth: sizes.customWidth,
     displayHeight: sizes.customHeight,
   };
@@ -135,14 +157,28 @@ function createEmptySpriteSlot(entityId: EntityId): SpriteSlot {
 
 export function createEmptySpriteConfig(): SpriteConfig {
   return {
-    version: 1,
+    version: 2,
     slots: {
-      kitty: createEmptySpriteSlot('kitty'),
-      doggo: createEmptySpriteSlot('doggo'),
-      'enemy-bill': createEmptySpriteSlot('enemy-bill'),
-      'enemy-deadline': createEmptySpriteSlot('enemy-deadline'),
-      'enemy-ex-lover': createEmptySpriteSlot('enemy-ex-lover'),
+      kitty: createEmptySlot('kitty'),
+      doggo: createEmptySlot('doggo'),
+      boss: createEmptySlot('boss'),
     },
     lastModified: Date.now(),
   };
+}
+
+/** Build texture key for a specific entity/level/action combination */
+export function textureKeyFor(entityId: EntityId, levelIndex: number, action: ActionState): string {
+  return `${entityId}-L${levelIndex}-${action}`;
+}
+
+// ── Data Source ──
+
+export type DataSource = 'cache' | 'local';
+
+// ── Local Manifest ──
+
+export interface LocalManifest {
+  version: number;
+  entities: Partial<Record<EntityId, { levels: Partial<Record<ActionState, string>>[] }>>;
 }

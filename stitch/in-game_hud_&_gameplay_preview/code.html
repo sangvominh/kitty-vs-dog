@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kitty vs MSmini - In-Game HUD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2b8cee",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        
+        /* Custom pattern for the arena floor */
+        .bg-grid-pattern {
+            background-image: 
+                linear-gradient(to right, rgba(43, 140, 238, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(43, 140, 238, 0.05) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        
+        .frosted-glass {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Tether animation simulation */
+        @keyframes pulse-tether {
+            0%, 100% { opacity: 0.6; stroke-width: 3; }
+            50% { opacity: 1; stroke-width: 4; }
+        }
+        .tether-line {
+            animation: pulse-tether 2s infinite ease-in-out;
+        }
+        
+        /* Simple float animation for characters */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .char-float {
+            animation: float 3s infinite ease-in-out;
+        }
+        .char-float-delay {
+            animation: float 3.5s infinite ease-in-out 0.5s;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-800 h-screen w-screen overflow-hidden relative selection:bg-primary selection:text-white">
+<!-- GAMEPLAY LAYER (Background) -->
+<div class="absolute inset-0 bg-background-light w-full h-full z-0 overflow-hidden bg-grid-pattern flex items-center justify-center">
+<!-- Decoration: Background elements to show depth -->
+<div class="absolute top-20 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+<div class="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+<!-- Simulated Game Characters & Tether -->
+<div class="relative w-[600px] h-[400px]">
+<!-- Tether Line (SVG) -->
+<svg class="absolute top-0 left-0 w-full h-full z-0 pointer-events-none" style="overflow: visible;">
+<!-- Connecting line between kitty and doggo -->
+<path class="tether-line opacity-80" d="M200,200 Q300,250 400,200" fill="none" stroke="#2b8cee" stroke-dasharray="10 5" stroke-linecap="round" stroke-width="4"></path>
+</svg>
+<!-- Character 1: Kitty -->
+<div class="absolute top-1/2 left-[200px] -translate-x-1/2 -translate-y-1/2 z-10 char-float">
+<div class="w-20 h-20 bg-white rounded-2xl shadow-lg border-4 border-primary/20 flex items-center justify-center relative overflow-hidden group transition-transform hover:scale-105 cursor-pointer">
+<img alt="Cute white kitten looking up" class="w-full h-full object-cover" data-alt="Close up of a cute white kitten face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAW0ctcFEQhh_vP8RleHO50wnvs26diWR-5Pvn6YrfqrwfOa2XctHYv_khZl4bw8dHEuDVRG9HE65-ko9PoAHxCrO-bN6qV-fFebE831dYa5VTHjuD1ZrcFyH8Z6XZauX_HPUawPPQAT29X4BJ3VJrSqN6JwD8W5YY7xY5SGJPyUgMzaCEox180mDccVAJEULh1ppO_oqqhfGBe3KkVIIr7D8nuFVMr1DtzocU7ZF3Htm27yK9pdPxTsZ10BUwzGB5VsRd2ABEi-0"/>
+<!-- Character HP Mini Bar -->
+<div class="absolute bottom-1 left-1 right-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+<div class="h-full bg-green-500 w-[80%]"></div>
+</div>
+</div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white/90 px-3 py-1 rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
+                    Kitty
+                </div>
+</div>
+<!-- Character 2: Doggo -->
+<div class="absolute top-1/2 left-[400px] -translate-x-1/2 -translate-y-1/2 z-10 char-float-delay">
+<div class="w-20 h-20 bg-white rounded-2xl shadow-lg border-4 border-orange-400/20 flex items-center justify-center relative overflow-hidden group transition-transform hover:scale-105 cursor-pointer">
+<img alt="Cute puppy dog face" class="w-full h-full object-cover" data-alt="Close up of a golden retriever puppy face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmWJZFJCMH3hCSbJ_9LP-zV8BPDKtfR1peaw3EfOOLmwggwkUUGx75RMsGKH8qgOW10b8c9KLXg7RP8GbjtG3Tcxa54e-P6TmBSHkD4c2GZIMMdrvgHQq0V7UjxLNMDzTPu-FVi_eZru6vN8dxoyHnT_DlYWml0H-st_H0DoDlPiRxBi5-IJiep2HU7C4aMLUClSb8RnhcccrWOAnEhvYr6sWwLG9w5EY0paN3VWc3_Xx5cLtOvvHjGDd8_zolO9NVqeBOSrIQ0cg"/>
+<!-- Character HP Mini Bar -->
+<div class="absolute bottom-1 left-1 right-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+<div class="h-full bg-green-500 w-[65%]"></div>
+</div>
+</div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white/90 px-3 py-1 rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
+                    Doggo
+                </div>
+</div>
+<!-- Enemy: MSmini -->
+<div class="absolute top-20 left-1/2 -translate-x-1/2 z-0 opacity-80">
+<div class="w-16 h-16 bg-red-500/10 rounded-xl border-2 border-red-400/40 flex items-center justify-center rotate-12">
+<span class="material-icons-round text-red-500 text-3xl">bug_report</span>
+</div>
+</div>
+<div class="absolute bottom-10 right-20 z-0 opacity-80">
+<div class="w-12 h-12 bg-red-500/10 rounded-xl border-2 border-red-400/40 flex items-center justify-center -rotate-6">
+<span class="material-icons-round text-red-500 text-2xl">bug_report</span>
+</div>
+</div>
+</div>
+</div>
+<!-- HUD LAYER -->
+<div class="absolute inset-0 z-50 pointer-events-none p-6 flex flex-col justify-between h-full w-full">
+<!-- TOP EDGE: Global XP Bar -->
+<div class="absolute top-0 left-0 w-full h-8 flex items-center justify-center pointer-events-auto">
+<div class="relative w-full h-full bg-gradient-to-b from-white/90 to-transparent">
+<!-- Progress container -->
+<div class="absolute top-0 left-0 w-full h-1.5 bg-gray-200/50">
+<div class="h-full bg-gradient-to-r from-yellow-400 via-primary to-purple-500 w-[65%] shadow-[0_0_10px_rgba(43,140,238,0.5)] rounded-r-full"></div>
+</div>
+<!-- Level Badge -->
+<div class="absolute top-2 left-1/2 -translate-x-1/2 frosted-glass px-4 py-0.5 rounded-b-xl shadow-sm text-xs font-bold text-primary tracking-wide border-t-0">
+                    LEVEL 5 <span class="text-gray-400 font-normal ml-1">XP 2450/4000</span>
+</div>
+</div>
+</div>
+<!-- TOP SECTION: HUD Panels -->
+<div class="flex items-start justify-between w-full pt-6">
+<!-- LEFT: Team Vitality -->
+<div class="frosted-glass rounded-2xl p-4 flex flex-col gap-3 min-w-[280px] pointer-events-auto shadow-sm">
+<!-- Team HP -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-end mb-0.5">
+<div class="flex items-center gap-2">
+<span class="bg-red-100 text-red-500 p-1 rounded-lg">
+<span class="material-icons-round text-sm">favorite</span>
+</span>
+<span class="text-sm font-bold text-gray-800">Team HP</span>
+</div>
+<span class="text-xs font-bold text-gray-600">850<span class="text-gray-400 text-[10px] font-normal">/1000</span></span>
+</div>
+<div class="h-3 w-full bg-gray-100 rounded-full overflow-hidden ring-1 ring-black/5">
+<div class="h-full bg-gradient-to-r from-green-400 to-green-500 w-[85%] rounded-full relative">
+<div class="absolute top-0 right-0 bottom-0 w-full bg-white/20 animate-pulse"></div>
+</div>
+</div>
+</div>
+<!-- Tether Integrity -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-end mb-0.5">
+<div class="flex items-center gap-2">
+<span class="bg-primary/20 text-primary p-1 rounded-lg">
+<span class="material-icons-round text-sm">link</span>
+</span>
+<span class="text-sm font-bold text-gray-800">Tether</span>
+</div>
+<span class="text-xs font-bold text-primary">92%</span>
+</div>
+<div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden ring-1 ring-black/5">
+<div class="h-full bg-primary w-[92%] rounded-full"></div>
+</div>
+</div>
+<!-- Wave Counter -->
+<div class="mt-1 pt-3 border-t border-gray-200/60 flex items-center justify-between">
+<span class="text-xs uppercase tracking-wider font-semibold text-gray-500">Current Wave</span>
+<div class="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-lg">
+<span class="material-icons-round text-sm text-gray-400">waves</span>
+<span class="text-sm font-black text-gray-800">12</span>
+</div>
+</div>
+</div>
+<!-- CENTER: Game Timer -->
+<div class="frosted-glass rounded-2xl px-6 py-2 pointer-events-auto transform translate-y-2">
+<div class="flex items-center gap-2">
+<span class="material-icons-round text-gray-400 text-lg">timer</span>
+<span class="font-display font-black text-2xl tracking-tight text-gray-800 tabular-nums">04:23</span>
+</div>
+</div>
+<!-- RIGHT: Resources -->
+<div class="frosted-glass rounded-2xl p-4 flex flex-col gap-3 min-w-[240px] pointer-events-auto shadow-sm items-end">
+<!-- Ammo Counter -->
+<div class="flex items-center gap-4 w-full justify-end">
+<div class="flex flex-col items-end">
+<span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Ammo</span>
+<span class="text-2xl font-black text-gray-800 leading-none">6<span class="text-gray-300 text-lg">/10</span></span>
+</div>
+<!-- Radial Progress Indicator for Ammo -->
+<div class="relative w-12 h-12 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90">
+<circle cx="24" cy="24" fill="none" r="18" stroke="#e5e7eb" stroke-width="4"></circle>
+<circle cx="24" cy="24" fill="none" r="18" stroke="#f59e0b" stroke-dasharray="113" stroke-dashoffset="45" stroke-linecap="round" stroke-width="4"></circle>
+</svg>
+<span class="material-icons-round absolute text-amber-500 text-sm">bolt</span>
+</div>
+</div>
+<!-- Coins -->
+<div class="w-full pt-2 border-t border-gray-200/60 flex justify-end">
+<div class="bg-yellow-50 border border-yellow-100 rounded-xl px-3 py-1.5 flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center shadow-sm text-yellow-800 text-xs font-bold border border-yellow-300">$</div>
+<span class="font-bold text-gray-800">1,240</span>
+</div>
+</div>
+</div>
+</div>
+<!-- BOTTOM SECTION -->
+<div class="flex justify-end w-full pb-6">
+<!-- Settings Button -->
+<button class="frosted-glass p-3 rounded-full text-gray-600 hover:text-primary hover:scale-110 transition-all shadow-sm group pointer-events-auto">
+<span class="material-icons-round group-hover:rotate-90 transition-transform duration-500">settings</span>
+</button>
+</div>
+</div>
+<!-- Notification / Toast Simulation (Optional Polish) -->
+<div class="absolute bottom-32 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 animate-[float_2s_ease-out_forwards]">
+<div class="frosted-glass px-4 py-2 rounded-full text-sm font-bold text-gray-700 shadow-lg flex items-center gap-2">
+<span class="text-green-500 material-icons-round text-base">add_circle</span>
+            +50 Coins
+        </div>
+</div>
+</body></html>

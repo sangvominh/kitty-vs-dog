@@ -14,8 +14,7 @@ import { SpriteProgressionSystem } from '../systems/SpriteProgressionSystem';
 import { LevelUpVFXSystem } from '../systems/LevelUpVFXSystem';
 import { BackgroundRenderer } from '../systems/BackgroundRenderer';
 import { useGameStore } from '../state/gameStore';
-import { useSpriteStore } from '../state/spriteStore';
-import { DEFAULT_DISPLAY_SIZES } from '../state/spriteTypes';
+import { DEFAULT_DISPLAY_SIZES, textureKeyFor } from '../state/spriteTypes';
 import { useSettingsStore } from '../../lib/settingsStore';
 import { getDifficulty } from '../state/difficultyConfig';
 
@@ -183,6 +182,9 @@ export class GameScene extends Phaser.Scene {
     this.kitty.update(time);
     this.doggo.update(time);
 
+    // Update action-based sprite textures
+    this.spriteProgression.updatePlayerTextures();
+
     // Sync passive ammo regen to store
     store.setKittyAmmo(this.kitty.ammo);
     store.setDoggoStamina(this.doggo.ammo);
@@ -225,19 +227,19 @@ export class GameScene extends Phaser.Scene {
 
   /**
    * Apply custom character sprites from spriteStore if available.
+   * Uses idle action from level 0 as the initial texture.
    */
   private applyCustomCharacterSprites(): void {
-    const spriteStore = useSpriteStore.getState();
-    const kittyTextureKey = spriteStore.getTextureKeyForLevel('kitty', 1);
-    if (kittyTextureKey && this.textures.exists(kittyTextureKey)) {
-      this.kitty.sprite.setTexture(kittyTextureKey);
+    const textureKeyKitty = textureKeyFor('kitty', 0, 'idle');
+    if (this.textures.exists(textureKeyKitty)) {
+      this.kitty.sprite.setTexture(textureKeyKitty);
       const sizes = DEFAULT_DISPLAY_SIZES['kitty'];
       this.kitty.sprite.setDisplaySize(sizes.customWidth, sizes.customHeight);
     }
 
-    const doggoTextureKey = spriteStore.getTextureKeyForLevel('doggo', 1);
-    if (doggoTextureKey && this.textures.exists(doggoTextureKey)) {
-      this.doggo.sprite.setTexture(doggoTextureKey);
+    const textureKeyDoggo = textureKeyFor('doggo', 0, 'idle');
+    if (this.textures.exists(textureKeyDoggo)) {
+      this.doggo.sprite.setTexture(textureKeyDoggo);
       const sizes = DEFAULT_DISPLAY_SIZES['doggo'];
       this.doggo.sprite.setDisplaySize(sizes.customWidth, sizes.customHeight);
     }

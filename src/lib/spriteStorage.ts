@@ -71,3 +71,37 @@ export async function clearAllSprites(): Promise<void> {
     }
   }
 }
+
+// ── Local Data Source ──
+
+import type { LocalManifest } from '../game/state/spriteTypes';
+
+/**
+ * Fetch and parse the local-data manifest.
+ * Returns null if the file doesn't exist or is invalid.
+ */
+export async function loadLocalManifest(): Promise<LocalManifest | null> {
+  try {
+    const resp = await fetch('/local-data/manifest.json', { cache: 'no-cache' });
+    if (!resp.ok) return null;
+    const data: LocalManifest = await resp.json();
+    if (!data.version || !data.entities) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Load an image from the local-data folder as a Blob.
+ * @param relativePath - path relative to local-data/, e.g. "sprites/kitty/idle.png"
+ */
+export async function loadLocalImageBlob(relativePath: string): Promise<Blob | null> {
+  try {
+    const resp = await fetch(`/local-data/${relativePath}`, { cache: 'no-cache' });
+    if (!resp.ok) return null;
+    return await resp.blob();
+  } catch {
+    return null;
+  }
+}

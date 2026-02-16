@@ -143,6 +143,9 @@ export class CombatSystem {
     const player = playerId === 'kitty' ? this.kitty : this.doggo;
     this.damageNumbers?.spawn(player.x, player.y, enemy.contactDamage, '#ff4444');
 
+    // Trigger hurt action for sprite swap
+    player.setTemporaryAction('hurt', now);
+
     // Check game over
     if (store.health <= 0) {
       store.setGameState('game-over');
@@ -346,6 +349,9 @@ export class CombatSystem {
 
     player.lastAttackTime = time;
     player.ammo--;
+
+    // Trigger attack action for sprite swap
+    player.setTemporaryAction('attack', time);
 
     // Damage reduction when players are touching (hugging)
     let damageMultiplier = 1.0;

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Customize Sprites - Kitty vs MSmini</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#2b8cee",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101922",
+              "glass": "rgba(255, 255, 255, 0.75)",
+              "glass-border": "rgba(255, 255, 255, 0.5)",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            backdropBlur: {
+              'xs': '2px',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            /* Abstract pastel pattern background to represent the game behind the overlay */
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(210, 89%, 66%, 0.3) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(280, 74%, 68%, 0.3) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(180, 65%, 60%, 0.3) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, hsla(340, 79%, 74%, 0.3) 0px, transparent 50%);
+            background-color: #f6f7f8;
+            background-attachment: fixed;
+        }
+
+        .frosted-glass {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .frosted-glass-dark {
+            /* For dark mode readiness, though currently light mode is requested */
+            background: rgba(16, 25, 34, 0.65);
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Custom dash border animation for drop zones */
+        .dash-border {
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%232B8CEE40' stroke-width='3' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
+        }
+        .dash-border:hover {
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%232B8CEE' stroke-width='3' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
+        }
+    </style>
+</head>
+<body class="font-display text-slate-700 h-screen w-screen overflow-hidden flex items-center justify-center p-4 lg:p-8">
+<!-- Overlay Container -->
+<div class="frosted-glass w-full h-full max-w-[1400px] rounded-xl lg:rounded-xl relative flex flex-col overflow-hidden animate-fade-in-up">
+<!-- Header -->
+<header class="flex-shrink-0 px-8 py-6 flex items-center justify-between border-b border-white/50">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-icons-round text-3xl">palette</span>
+</div>
+<div>
+<h1 class="text-2xl font-bold text-slate-800">Customize Sprites</h1>
+<p class="text-sm text-slate-500 font-medium">Kitty vs MSmini • Version 2.4.0</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex bg-white/60 p-1 rounded-full border border-white/60">
+<button class="px-4 py-2 rounded-full bg-primary text-white shadow-sm font-semibold text-sm transition-all">Upload Mode</button>
+<button class="px-4 py-2 rounded-full text-slate-500 hover:text-primary font-semibold text-sm transition-all hover:bg-primary/10">Reorder</button>
+</div>
+<button class="w-10 h-10 rounded-full bg-white/50 hover:bg-red-50 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors">
+<span class="material-icons-round">close</span>
+</button>
+</div>
+</header>
+<!-- Main Layout -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Sidebar Navigation -->
+<nav class="w-20 lg:w-64 flex-shrink-0 border-r border-white/50 bg-white/20 flex flex-col py-6 px-3 lg:px-6 gap-2 overflow-y-auto scrollbar-hide">
+<div class="hidden lg:block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-4">Categories</div>
+<!-- Nav Item: Active -->
+<button class="group flex items-center gap-4 p-3 lg:px-4 lg:py-3.5 rounded-full bg-primary text-white shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
+<span class="material-icons-round">pets</span>
+<span class="hidden lg:block font-bold">Kitty (P1)</span>
+</button>
+<!-- Nav Item: Inactive -->
+<button class="group flex items-center gap-4 p-3 lg:px-4 lg:py-3.5 rounded-full hover:bg-white/60 text-slate-600 transition-all">
+<span class="material-icons-round text-slate-400 group-hover:text-primary">landscape</span>
+<span class="hidden lg:block font-semibold">Background</span>
+</button>
+<button class="group flex items-center gap-4 p-3 lg:px-4 lg:py-3.5 rounded-full hover:bg-white/60 text-slate-600 transition-all">
+<span class="material-icons-round text-slate-400 group-hover:text-primary">cruelty_free</span>
+<span class="hidden lg:block font-semibold">Doggo (P2)</span>
+</button>
+<button class="group flex items-center gap-4 p-3 lg:px-4 lg:py-3.5 rounded-full hover:bg-white/60 text-slate-600 transition-all">
+<span class="material-icons-round text-slate-400 group-hover:text-primary">receipt_long</span>
+<span class="hidden lg:block font-semibold">Bill (Hóa đơn)</span>
+</button>
+<button class="group flex items-center gap-4 p-3 lg:px-4 lg:py-3.5 rounded-full hover:bg-white/60 text-slate-600 transition-all">
+<span class="material-icons-round text-slate-400 group-hover:text-primary">timer</span>
+<span class="hidden lg:block font-semibold">Deadline</span>
+</button>
+<button class="group flex items-center gap-4 p-3 lg:px-4 lg:py-3.5 rounded-full hover:bg-white/60 text-slate-600 transition-all">
+<span class="material-icons-round text-slate-400 group-hover:text-primary">broken_heart</span>
+<span class="hidden lg:block font-semibold">Ex-Lover</span>
+</button>
+<div class="mt-auto pt-6 border-t border-white/30 hidden lg:block">
+<div class="bg-primary/10 rounded-lg p-4">
+<div class="flex items-center gap-2 text-primary font-bold text-sm mb-1">
+<span class="material-icons-round text-sm">tips_and_updates</span>
+                             Pro Tip
+                        </div>
+<p class="text-xs text-slate-600 leading-relaxed">
+                            Use transparent PNGs for the best results. Keep sprites under 512px.
+                        </p>
+</div>
+</div>
+</nav>
+<!-- Content Area -->
+<main class="flex-1 overflow-y-auto p-6 lg:p-10 relative bg-white/10">
+<!-- Section Header -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-3xl font-extrabold text-slate-800 mb-2">Kitty Sprites</h2>
+<p class="text-slate-500">Manage the appearance of Player 1. Current skin: <span class="text-primary font-semibold">Default Calico</span></p>
+</div>
+<div class="flex gap-2">
+<button class="p-2 rounded-full hover:bg-white/50 text-slate-400 hover:text-primary transition-colors" title="Grid View">
+<span class="material-icons-round">grid_view</span>
+</button>
+<button class="p-2 rounded-full hover:bg-white/50 text-slate-400 hover:text-primary transition-colors" title="List View">
+<span class="material-icons-round">view_list</span>
+</button>
+</div>
+</div>
+<!-- Sprite Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Slot 1: Filled (Idle) -->
+<div class="group relative aspect-square bg-white/40 rounded-lg border border-white hover:border-primary/30 hover:bg-white/70 transition-all duration-300 shadow-sm hover:shadow-lg flex flex-col items-center justify-center p-4">
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+<button class="w-8 h-8 rounded-full bg-white text-slate-400 hover:text-primary shadow-sm flex items-center justify-center">
+<span class="material-icons-round text-sm">edit</span>
+</button>
+<button class="w-8 h-8 rounded-full bg-white text-slate-400 hover:text-red-500 shadow-sm flex items-center justify-center">
+<span class="material-icons-round text-sm">close</span>
+</button>
+</div>
+<div class="flex-1 w-full flex items-center justify-center relative">
+<!-- Image representing Kitty Idle Sprite -->
+<img alt="Idle Sprite" class="max-h-32 object-contain drop-shadow-md" data-alt="Cute orange cat sitting pixel art style transparent background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSn93e7juL3lnvUYteqv4830i9qPRwjD50wrOLM3-MFQptcVqPnXQoGnfRUqpezCt3ZbwWgYTmNQxPPv5Y0_OBXwRYv4M7JDfjafuF_3UkHX7s2cLutuhZpUwSV6ENCICgd8py6SILTTf2RR1OzD2lBFY4Do66vQsm50TaqXxrUlmVOwQ2thBjtLvloe4LgmxHFIv-7kShDIlZz3ONC8NgbbJFxmj9s8pNeAz6ToZD1FDIlmpoxAR256t8bv4bAmy7OnbWEeLz6Gs"/>
+</div>
+<div class="w-full mt-3 flex items-center justify-between border-t border-slate-200/50 pt-3">
+<span class="text-sm font-bold text-slate-700">Idle</span>
+<span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Active</span>
+</div>
+</div>
+<!-- Slot 2: Filled (Run) -->
+<div class="group relative aspect-square bg-white/40 rounded-lg border border-white hover:border-primary/30 hover:bg-white/70 transition-all duration-300 shadow-sm hover:shadow-lg flex flex-col items-center justify-center p-4">
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+<button class="w-8 h-8 rounded-full bg-white text-slate-400 hover:text-primary shadow-sm flex items-center justify-center">
+<span class="material-icons-round text-sm">edit</span>
+</button>
+<button class="w-8 h-8 rounded-full bg-white text-slate-400 hover:text-red-500 shadow-sm flex items-center justify-center">
+<span class="material-icons-round text-sm">close</span>
+</button>
+</div>
+<div class="flex-1 w-full flex items-center justify-center">
+<!-- Image representing Kitty Running Sprite -->
+<img alt="Run Sprite" class="max-h-32 object-contain drop-shadow-md" data-alt="Cat running mid-air jump pixel art style transparent background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFgDyVKaHFOAJD4MPg7zO-U-TmMQZmPZAf2NDOh83QeVNMWpbCaK-UNgZE3B8ObKmQSIF_qcsPZk31wDSa_eGY57Wefatq5_DefOMaW3vkYTIgky4wFUjrDbaU8tE9BgyqKgkmqrGVAbQq72dOihxzJL5tVbJyDFuCn6J9bBhY50u3VXdaRzI2fhVjksGhuheIFRCfiZIKCheF5RpK8_rIxbvFtLbba-8Qt8dPhef6Eu6Lxyuo338JynjBK1V-tp_JGW2ysSNtKw4"/>
+</div>
+<div class="w-full mt-3 flex items-center justify-between border-t border-slate-200/50 pt-3">
+<span class="text-sm font-bold text-slate-700">Run</span>
+<span class="text-[10px] text-slate-400 font-medium">128x128px</span>
+</div>
+</div>
+<!-- Slot 3: Filled (Jump) -->
+<div class="group relative aspect-square bg-white/40 rounded-lg border border-white hover:border-primary/30 hover:bg-white/70 transition-all duration-300 shadow-sm hover:shadow-lg flex flex-col items-center justify-center p-4">
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+<button class="w-8 h-8 rounded-full bg-white text-slate-400 hover:text-primary shadow-sm flex items-center justify-center">
+<span class="material-icons-round text-sm">edit</span>
+</button>
+<button class="w-8 h-8 rounded-full bg-white text-slate-400 hover:text-red-500 shadow-sm flex items-center justify-center">
+<span class="material-icons-round text-sm">close</span>
+</button>
+</div>
+<div class="flex-1 w-full flex items-center justify-center">
+<!-- Image representing Kitty Jumping Sprite -->
+<img alt="Jump Sprite" class="max-h-32 object-contain drop-shadow-md" data-alt="Cat stretching upwards paws up pixel art style transparent background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA38-Nk5MPkNWFbBcVMYx5EgYHLPWjLi_ve_yu4nP_4rhIkZMXJomTfkDDitc2EwXGlGLgFOaXakYLjtc5sZDdF3P_fkY3RFWlXsesQdcH7hCQ4bT61XHRlymx5-lDVGg60amiOWBf8PeoojdlzxGqLsURWVGFJ8GMOE_2dNbByeOz-L9-0YkD1WRKQdOT8rMEqjcjkVWmcAsS1DrxSzEQUGKg1TLjHijH25FPUmzIST8UqOTivNiUUy8l0pl412Al1kjByFb1IE3s"/>
+</div>
+<div class="w-full mt-3 flex items-center justify-between border-t border-slate-200/50 pt-3">
+<span class="text-sm font-bold text-slate-700">Jump</span>
+<span class="text-[10px] text-slate-400 font-medium">128x128px</span>
+</div>
+</div>
+<!-- Slot 4: Empty (Attack) -->
+<div class="dash-border group aspect-square rounded-lg flex flex-col items-center justify-center p-4 cursor-pointer bg-white/10 hover:bg-primary/5 transition-colors">
+<div class="w-12 h-12 rounded-full bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white flex items-center justify-center mb-3 transition-colors">
+<span class="material-icons-round">add</span>
+</div>
+<span class="text-sm font-bold text-slate-600 group-hover:text-primary">Attack</span>
+<span class="text-xs text-slate-400 mt-1">Drop PNG here</span>
+</div>
+<!-- Slot 5: Empty (Damage) -->
+<div class="dash-border group aspect-square rounded-lg flex flex-col items-center justify-center p-4 cursor-pointer bg-white/10 hover:bg-primary/5 transition-colors">
+<div class="w-12 h-12 rounded-full bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white flex items-center justify-center mb-3 transition-colors">
+<span class="material-icons-round">add</span>
+</div>
+<span class="text-sm font-bold text-slate-600 group-hover:text-primary">Take Damage</span>
+<span class="text-xs text-slate-400 mt-1">Drop PNG here</span>
+</div>
+<!-- Slot 6: Empty (Victory) -->
+<div class="dash-border group aspect-square rounded-lg flex flex-col items-center justify-center p-4 cursor-pointer bg-white/10 hover:bg-primary/5 transition-colors">
+<div class="w-12 h-12 rounded-full bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white flex items-center justify-center mb-3 transition-colors">
+<span class="material-icons-round">add</span>
+</div>
+<span class="text-sm font-bold text-slate-600 group-hover:text-primary">Victory Pose</span>
+<span class="text-xs text-slate-400 mt-1">Drop PNG here</span>
+</div>
+</div>
+<!-- Spacer for Footer -->
+<div class="h-24"></div>
+</main>
+</div>
+<!-- Sticky Footer Action Bar -->
+<footer class="absolute bottom-0 w-full bg-white/80 backdrop-blur-md border-t border-white/50 px-8 py-4 flex items-center justify-between z-10">
+<button class="text-slate-500 hover:text-slate-700 font-semibold text-sm flex items-center gap-2 px-4 py-2 rounded-full hover:bg-slate-100 transition-colors">
+<span class="material-icons-round text-lg">restart_alt</span>
+                Reset Defaults
+            </button>
+<div class="flex items-center gap-4">
+<span class="text-xs text-slate-400 font-medium hidden sm:block">All changes are auto-saved locally.</span>
+<button class="bg-primary hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-primary/30 flex items-center gap-2 transition-all transform active:scale-95">
+<span class="material-icons-round">save</span>
+                    Apply &amp; Save
+                </button>
+</div>
+</footer>
+<!-- Toast Notification (Absolute positioned demo) -->
+<div class="absolute bottom-24 right-8 bg-white/90 backdrop-blur-md border border-white p-4 rounded-lg shadow-xl shadow-slate-200/50 flex items-center gap-3 animate-bounce">
+<div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+<span class="material-icons-round text-sm">check</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-slate-800">Upload Successful</h4>
+<p class="text-xs text-slate-500">Idle sprite updated.</p>
+</div>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-icons-round text-sm">close</span>
+</button>
+</div>
+</div>
+</body></html>

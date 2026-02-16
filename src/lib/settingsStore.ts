@@ -9,7 +9,8 @@ import {
   type DifficultyId,
   type DifficultyLevel,
 } from '../game/state/difficultyConfig';
-import { loadSettings, saveDifficulty, type GameSettings } from './settingsStorage';
+import { loadSettings, saveDifficulty, saveDataSource, type GameSettings } from './settingsStorage';
+import type { DataSource } from '../game/state/spriteTypes';
 
 export type MenuScreen = 'main-menu' | 'playing' | 'customizing';
 
@@ -20,6 +21,8 @@ interface SettingsStore {
   screen: MenuScreen;
   /** Selected difficulty ID */
   difficultyId: DifficultyId;
+  /** Sprite data source */
+  dataSource: DataSource;
   /** Full settings from storage */
   settings: GameSettings | null;
 
@@ -29,6 +32,7 @@ interface SettingsStore {
   /** Actions */
   setScreen: (screen: MenuScreen) => void;
   setDifficulty: (id: DifficultyId) => void;
+  setDataSource: (ds: DataSource) => void;
   loadFromStorage: () => Promise<void>;
 }
 
@@ -36,6 +40,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   loaded: false,
   screen: 'main-menu',
   difficultyId: DEFAULT_DIFFICULTY,
+  dataSource: 'cache',
   settings: null,
 
   getDifficultyConfig: () => getDifficulty(get().difficultyId),
@@ -44,8 +49,12 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
   setDifficulty: (id) => {
     set({ difficultyId: id });
-    // Persist asynchronously
     saveDifficulty(id).catch(console.warn);
+  },
+
+  setDataSource: (ds) => {
+    set({ dataSource: ds });
+    saveDataSource(ds).catch(console.warn);
   },
 
   loadFromStorage: async () => {
@@ -54,9 +63,15 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       set({
         loaded: true,
         difficultyId: settings.difficulty,
+        dataSource: settings.dataSource ?? 'cache',
         settings,
       });
-      console.log('[SettingsStore] Loaded settings, difficulty:', settings.difficulty);
+      console.log(
+        '[SettingsStore] Loaded settings, difficulty:',
+        settings.difficulty,
+        'dataSource:',
+        settings.dataSource,
+      );
     } catch (err) {
       console.warn('[SettingsStore] Failed to load, using defaults:', err);
       set({ loaded: true });
