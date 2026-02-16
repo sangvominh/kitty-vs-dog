@@ -369,9 +369,9 @@ export class BackgroundRenderer {
     const scale = Math.max(scaleX, scaleY);
     img.setScale(scale);
 
-    // Slight dimming overlay so gameplay elements pop
+    // Very subtle dimming overlay so gameplay elements pop (keep background bright)
     const dimGfx = this.scene.add.graphics().setDepth(DEPTH_BASE + 1);
-    dimGfx.fillStyle(0x000000, 0.3);
+    dimGfx.fillStyle(0x000000, 0.1);
     dimGfx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
   }
 
@@ -434,7 +434,7 @@ export class BackgroundRenderer {
       const vctx = vc.context;
       const vgrad = vctx.createRadialGradient(w / 2, h / 2, h * 0.35, w / 2, h / 2, h * 0.85);
       vgrad.addColorStop(0, 'rgba(0,0,0,0)');
-      vgrad.addColorStop(1, 'rgba(0,0,0,0.55)');
+      vgrad.addColorStop(1, 'rgba(0,0,0,0.2)');
       vctx.fillStyle = vgrad;
       vctx.fillRect(0, 0, w, h);
       vc.refresh();

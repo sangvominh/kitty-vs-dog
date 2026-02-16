@@ -1,13 +1,16 @@
 /**
- * SpriteListItem — renders a single sprite thumbnail row in the customization list.
- * Displays level label, thumbnail, filename, and a remove button.
+ * SpriteListItem — renders a single sprite as a glass card tile in the customization grid.
+ * Displays slot label, thumbnail, filename, and hover action buttons.
  */
 
+import { useState, useEffect } from 'react';
+import { useSpriteStore } from '../game/state/spriteStore';
 import type { CustomImage } from '../game/state/spriteTypes';
 
 interface SpriteListItemProps {
   image: CustomImage;
   index: number;
+  slotLabel?: string;
   onRemove: (imageId: string) => void;
   draggable?: boolean;
   onDragStart?: (e: React.DragEvent, index: number) => void;
@@ -21,6 +24,7 @@ interface SpriteListItemProps {
 export function SpriteListItem({
   image,
   index,
+  slotLabel,
   onRemove,
   draggable = false,
   onDragStart,
@@ -30,64 +34,69 @@ export function SpriteListItem({
   isDragging = false,
   isOver = false,
 }: SpriteListItemProps) {
-  // Create a thumbnail URL from the blob key
   const thumbnailUrl = useThumbnailUrl(image.id);
 
   return (
-    <li
+    <div
       draggable={draggable}
       onDragStart={draggable ? (e) => onDragStart?.(e, index) : undefined}
       onDragOver={draggable ? (e) => onDragOver?.(e, index) : undefined}
       onDrop={draggable ? (e) => onDrop?.(e, index) : undefined}
       onDragEnd={draggable ? onDragEnd : undefined}
-      className={`flex items-center gap-3 p-2 rounded border transition-all
-        ${isDragging ? 'opacity-30' : ''}
-        ${isOver && !isDragging ? 'border-blue-400 bg-blue-900/20' : 'border-gray-600'}
-        ${draggable ? 'cursor-grab' : ''}
+      className={`group relative aspect-square bg-white/40 rounded-lg border hover:border-[var(--color-primary)]/30 hover:bg-white/70 transition-all duration-300 shadow-sm hover:shadow-lg flex flex-col items-center justify-center p-4
+        ${isDragging ? 'opacity-30 scale-95' : ''}
+        ${isOver && !isDragging ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 shadow-lg' : 'border-white'}
+        ${draggable ? 'cursor-grab active:cursor-grabbing' : ''}
       `}
     >
-      <span className="text-gray-400 text-sm w-8 flex-shrink-0">Lv {index + 1}</span>
-      {thumbnailUrl ? (
-        <img
-          src={thumbnailUrl}
-          alt={image.fileName}
-          className="w-10 h-10 object-contain rounded bg-gray-700"
-          draggable={false}
-        />
-      ) : (
-        <div className="w-10 h-10 rounded bg-gray-700 flex items-center justify-center">
-          <span className="text-gray-500 text-xs">...</span>
-        </div>
-      )}
-      <span className="text-sm text-gray-200 truncate flex-1">{image.fileName}</span>
-      <button
-        onClick={() => onRemove(image.id)}
-        className="text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded p-1 flex-shrink-0 transition-colors"
-        title="Remove"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4"
-          viewBox="0 0 20 20"
-          fill="currentColor"
+      {/* Hover action buttons */}
+      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10">
+        <button
+          onClick={() => onRemove(image.id)}
+          className="w-8 h-8 rounded-full bg-white text-slate-400 hover:text-red-500 shadow-sm flex items-center justify-center transition-colors"
+          title="Xóa"
         >
-          <path
-            fillRule="evenodd"
-            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-            clipRule="evenodd"
+          <span className="material-icons-round text-sm">close</span>
+        </button>
+      </div>
+
+      {/* Thumbnail */}
+      <div className="flex-1 w-full flex items-center justify-center relative">
+        {thumbnailUrl ? (
+          <img
+            src={thumbnailUrl}
+            alt={image.fileName}
+            className="max-h-32 object-contain drop-shadow-md"
+            draggable={false}
           />
-        </svg>
-      </button>
-    </li>
+        ) : (
+          <div className="w-20 h-20 rounded-xl bg-slate-100 flex items-center justify-center">
+            <span className="material-icons-round text-slate-300 text-3xl">image</span>
+          </div>
+        )}
+      </div>
+
+      {/* Label bar */}
+      <div className="w-full mt-3 flex items-center justify-between border-t border-slate-200/50 pt-3">
+        <span className="text-sm font-bold text-slate-700">{slotLabel || `Lv ${index + 1}`}</span>
+        {index === 0 && (
+          <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
+            Đang dùng
+          </span>
+        )}
+        {index > 0 && (
+          <span className="text-[10px] text-slate-400 font-medium truncate max-w-[80px]">
+            {image.fileName}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 
 /**
  * Hook to get a thumbnail URL for a custom image from IndexedDB.
  */
-import { useState, useEffect } from 'react';
-import { useSpriteStore } from '../game/state/spriteStore';
-
 function useThumbnailUrl(imageId: string): string | null {
   const [url, setUrl] = useState<string | null>(null);
   const getImageBlob = useSpriteStore((s) => s.getImageBlob);

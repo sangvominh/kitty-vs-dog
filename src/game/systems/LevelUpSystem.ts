@@ -4,6 +4,8 @@ import type { Tether } from '../entities/Tether';
 import type { SpawnSystem } from './SpawnSystem';
 import type { WaveSystem } from './WaveSystem';
 import { useGameStore, type UpgradeType, type PlayerId } from '../state/gameStore';
+import { useSettingsStore } from '../../lib/settingsStore';
+import { getDifficulty } from '../state/difficultyConfig';
 import type { SpriteProgressionSystem } from './SpriteProgressionSystem';
 import type { LevelUpVFXSystem } from './LevelUpVFXSystem';
 
@@ -141,10 +143,12 @@ export class LevelUpSystem {
         break;
     }
 
-    // Increment level and compute new threshold
+    // Increment level and compute new threshold (scaled by difficulty)
     const store = useGameStore.getState();
     const newLevel = store.level + 1;
-    const newThreshold = 10 * newLevel;
+    const difficultyId = useSettingsStore.getState().difficultyId;
+    const difficulty = getDifficulty(difficultyId);
+    const newThreshold = Math.round(10 * newLevel * difficulty.xpThresholdMultiplier);
 
     store.setLevel(newLevel);
     store.setNextLevelThreshold(newThreshold);

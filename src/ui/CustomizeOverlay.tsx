@@ -1,6 +1,6 @@
 /**
- * CustomizeOverlay — full-screen overlay for sprite customization.
- * Renders tabs for all 5 entity types with SpriteSlotPanel components.
+ * CustomizeOverlay — full-screen frosted-glass overlay for sprite customization.
+ * Sidebar navigation + sprite grid + background picker following stitch design.
  */
 
 import { useState } from 'react';
@@ -18,111 +18,180 @@ type TabId = EntityId | 'background';
 interface TabConfig {
   id: TabId;
   label: string;
-  emoji: string;
+  icon: string;
 }
 
 const TABS: TabConfig[] = [
-  { id: 'background', label: 'Phong Cảnh', emoji: '🖼️' },
-  { id: 'kitty', label: 'Kitty', emoji: '🐱' },
-  { id: 'doggo', label: 'Doggo', emoji: '🐶' },
-  { id: 'enemy-bill', label: 'Bill', emoji: '📄' },
-  { id: 'enemy-deadline', label: 'Deadline', emoji: '⏰' },
-  { id: 'enemy-ex-lover', label: 'Ex-Lover', emoji: '💔' },
+  { id: 'kitty', label: 'Kitty (P1)', icon: 'pets' },
+  { id: 'background', label: 'Phông nền', icon: 'landscape' },
+  { id: 'doggo', label: 'Doggo (P2)', icon: 'cruelty_free' },
+  { id: 'enemy-bill', label: 'Hóa đơn', icon: 'receipt_long' },
+  { id: 'enemy-deadline', label: 'Deadline', icon: 'timer' },
+  { id: 'enemy-ex-lover', label: 'Người yêu cũ', icon: 'broken_heart' },
 ];
 
 export function CustomizeOverlay({ onClose }: CustomizeOverlayProps) {
-  const [activeTab, setActiveTab] = useState<TabId>('background');
+  const [activeTab, setActiveTab] = useState<TabId>('kitty');
   const isLoaded = useSpriteStore((s) => s.isLoaded);
   const errorMessage = useSpriteStore((s) => s.errorMessage);
 
   if (!isLoaded) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-        <div className="text-white text-xl">Loading sprite configuration...</div>
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center"
+        style={{
+          backgroundImage:
+            'radial-gradient(at 0% 0%, hsla(210, 89%, 66%, 0.3) 0px, transparent 50%), radial-gradient(at 100% 0%, hsla(280, 74%, 68%, 0.3) 0px, transparent 50%), radial-gradient(at 100% 100%, hsla(180, 65%, 60%, 0.3) 0px, transparent 50%), radial-gradient(at 0% 100%, hsla(340, 79%, 74%, 0.3) 0px, transparent 50%)',
+          backgroundColor: 'var(--color-bg-light)',
+        }}
+      >
+        <div className="frosted-glass rounded-2xl px-8 py-6 text-slate-600 text-xl font-bold flex items-center gap-3">
+          <span className="material-icons-round animate-spin text-[var(--color-primary)]">
+            sync
+          </span>
+          Đang tải cấu hình...
+        </div>
       </div>
     );
   }
 
+  const activeTabConfig = TABS.find((t) => t.id === activeTab)!;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden border border-gray-600">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-8"
+      style={{
+        backgroundImage:
+          'radial-gradient(at 0% 0%, hsla(210, 89%, 66%, 0.3) 0px, transparent 50%), radial-gradient(at 100% 0%, hsla(280, 74%, 68%, 0.3) 0px, transparent 50%), radial-gradient(at 100% 100%, hsla(180, 65%, 60%, 0.3) 0px, transparent 50%), radial-gradient(at 0% 100%, hsla(340, 79%, 74%, 0.3) 0px, transparent 50%)',
+        backgroundColor: 'var(--color-bg-light)',
+        backgroundAttachment: 'fixed',
+      }}
+    >
+      {/* Overlay Container */}
+      <div className="frosted-glass w-full h-full max-w-[1400px] rounded-xl relative flex flex-col overflow-hidden animate-fade-in-up">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-600">
-          <h2 className="text-xl font-bold text-white">Customize Sprites</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors p-1 rounded hover:bg-gray-700"
-            title="Close"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Tab bar */}
-        <div className="flex border-b border-gray-600 px-4">
-          {TABS.map((tab) => (
+        <header className="flex-shrink-0 px-8 py-6 flex items-center justify-between border-b border-white/50">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)]">
+              <span className="material-icons-round text-3xl">palette</span>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800">Tùy chỉnh Trang phục</h1>
+              <p className="text-sm text-slate-500 font-medium">Kitty vs MSmini</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors
-                ${
-                  activeTab === tab.id
-                    ? 'border-blue-400 text-blue-400'
-                    : 'border-transparent text-gray-400 hover:text-gray-200'
-                }
-              `}
+              onClick={onClose}
+              className="w-10 h-10 rounded-full bg-white/50 hover:bg-red-50 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors"
             >
-              <span className="mr-1">{tab.emoji}</span>
-              {tab.label}
+              <span className="material-icons-round text-xl">close</span>
             </button>
-          ))}
-        </div>
+          </div>
+        </header>
 
-        {/* Tab content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === 'background' ? (
-            <BackgroundPicker />
-          ) : (
-            <SpriteSlotPanel
-              entityId={activeTab as EntityId}
-              label={TABS.find((t) => t.id === activeTab)!.label}
-            />
-          )}
+        {/* Main Layout */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Sidebar Navigation */}
+          <nav className="w-20 lg:w-64 flex-shrink-0 border-r border-white/50 bg-white/20 flex flex-col py-6 px-3 lg:px-6 gap-2 overflow-y-auto scrollbar-hide">
+            <div className="hidden lg:block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-4">
+              Danh mục
+            </div>
+
+            {TABS.map((tab) => {
+              const isActive = tab.id === activeTab;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`group flex items-center gap-4 p-3 lg:px-4 lg:py-3.5 rounded-full transition-all
+                    ${
+                      isActive
+                        ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20 hover:scale-[1.02]'
+                        : 'hover:bg-white/60 text-slate-600'
+                    }
+                  `}
+                >
+                  <span
+                    className={`material-icons-round text-xl ${isActive ? '' : 'text-slate-400 group-hover:text-[var(--color-primary)]'}`}
+                  >
+                    {tab.icon}
+                  </span>
+                  <span className={`hidden lg:block ${isActive ? 'font-bold' : 'font-semibold'}`}>
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
+
+            {/* Pro Tip */}
+            <div className="mt-auto pt-6 border-t border-white/30 hidden lg:block">
+              <div className="bg-[var(--color-primary)]/10 rounded-xl p-4">
+                <div className="flex items-center gap-2 text-[var(--color-primary)] font-bold text-sm mb-1">
+                  <span className="material-icons-round text-sm">tips_and_updates</span>
+                  Mẹo hay
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Dùng ảnh PNG trong suốt để đạt kết quả tốt nhất. Kích thước dưới 512px.
+                </p>
+              </div>
+            </div>
+          </nav>
+
+          {/* Content Area */}
+          <main className="flex-1 overflow-y-auto p-6 lg:p-10 relative bg-white/10">
+            {/* Section Header */}
+            <div className="flex justify-between items-end mb-8">
+              <div>
+                <h2 className="text-3xl font-extrabold text-slate-800 mb-2">
+                  {activeTabConfig.label}
+                </h2>
+                <p className="text-slate-500">
+                  {activeTab === 'background'
+                    ? 'Chọn phông nền cho trận đấu'
+                    : `Quản lý hình ảnh của ${activeTabConfig.label}`}
+                </p>
+              </div>
+            </div>
+
+            {/* Tab content */}
+            {activeTab === 'background' ? (
+              <BackgroundPicker />
+            ) : (
+              <SpriteSlotPanel entityId={activeTab as EntityId} label={activeTabConfig.label} />
+            )}
+
+            {/* Spacer for Footer */}
+            <div className="h-24" />
+          </main>
         </div>
 
         {/* Global error */}
         {errorMessage && (
-          <div className="px-6 py-2 bg-red-900/30 border-t border-red-800">
-            <p className="text-sm text-red-400">{errorMessage}</p>
+          <div className="px-8 py-2 bg-red-50 border-t border-red-200">
+            <p className="text-sm text-red-600">{errorMessage}</p>
           </div>
         )}
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-600">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-300 hover:text-white border border-gray-500 rounded hover:border-gray-400 transition-colors"
-          >
-            Back
+        {/* Sticky Footer Action Bar */}
+        <footer className="absolute bottom-0 w-full bg-white/80 backdrop-blur-md border-t border-white/50 px-8 py-4 flex items-center justify-between z-10">
+          <button className="text-slate-500 hover:text-slate-700 font-semibold text-sm flex items-center gap-2 px-4 py-2 rounded-full hover:bg-slate-100 transition-colors">
+            <span className="material-icons-round text-lg">restart_alt</span>
+            Khôi phục mặc định
           </button>
-          <button
-            onClick={onClose}
-            className="px-6 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-500 rounded transition-colors"
-          >
-            Start Game
-          </button>
-        </div>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-slate-400 font-medium hidden sm:block">
+              Thay đổi được tự động lưu.
+            </span>
+            <button
+              onClick={onClose}
+              className="bg-[var(--color-primary)] hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-[var(--color-primary)]/30 flex items-center gap-2 transition-all transform active:scale-95"
+            >
+              <span className="material-icons-round text-xl">save</span>
+              Áp dụng & Lưu
+            </button>
+          </div>
+        </footer>
       </div>
     </div>
   );

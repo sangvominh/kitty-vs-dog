@@ -36,6 +36,9 @@ export class GameScene extends Phaser.Scene {
   // Timer tracking
   private gameStartTime: number = 0;
   private lastTimerSecond: number = -1;
+  private lastGameState: string = 'playing';
+  private pauseStartTime: number = 0;
+  private totalPausedTime: number = 0;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -45,10 +48,13 @@ export class GameScene extends Phaser.Scene {
     // Reset store on fresh game
     useGameStore.getState().reset();
 
-    // Apply difficulty to player health
+    // Apply difficulty to player health and initial XP threshold
     const difficultyId = useSettingsStore.getState().difficultyId;
     const difficulty = getDifficulty(difficultyId);
     useGameStore.getState().setMaxHealth(difficulty.playerMaxHealth);
+    useGameStore
+      .getState()
+      .setNextLevelThreshold(Math.round(10 * difficulty.xpThresholdMultiplier));
 
     // Draw background scenery (must be first so everything renders on top)
     const bgRenderer = new BackgroundRenderer(this);
@@ -152,7 +158,23 @@ export class GameScene extends Phaser.Scene {
     // Level-up system runs in both 'playing' and 'level-up' states
     this.levelUpSystem.update();
 
-    if (store.gameState !== 'playing') return;
+    // Track pause time for timer sync (level-up / paused / game-over)
+    if (store.gameState !== 'playing') {
+      if (this.lastGameState === 'playing') {
+        this.pauseStartTime = time;
+      }
+      this.lastGameState = store.gameState;
+      return;
+    }
+
+    // Just resumed from pause — compensate timing systems
+    if (this.lastGameState !== 'playing') {
+      const pauseDuration = time - this.pauseStartTime;
+      this.totalPausedTime += pauseDuration;
+      this.waveSystem.compensatePause(pauseDuration);
+      this.spawnSystem.compensatePause(pauseDuration);
+      this.lastGameState = 'playing';
+    }
 
     // Update input
     this.inputSystem.update();
@@ -186,8 +208,8 @@ export class GameScene extends Phaser.Scene {
     // Update wave system
     this.waveSystem.update(time);
 
-    // Update game timer
-    const elapsed = time - this.gameStartTime;
+    // Update game timer (excluding paused time)
+    const elapsed = time - this.gameStartTime - this.totalPausedTime;
     const currentSecond = Math.floor(elapsed / 1000);
     if (currentSecond !== this.lastTimerSecond) {
       this.lastTimerSecond = currentSecond;

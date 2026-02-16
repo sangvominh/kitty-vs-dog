@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type GameState = 'playing' | 'level-up' | 'game-over';
+export type GameState = 'playing' | 'paused' | 'level-up' | 'game-over';
 export type UpgradeType = 'tether-length' | 'damage' | 'speed' | 'ammo' | 'attack-speed';
 export type PlayerId = 'kitty' | 'doggo';
 

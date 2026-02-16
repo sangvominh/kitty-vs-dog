@@ -2,6 +2,7 @@ import { PhaserGame } from './game/PhaserGame';
 import { HUD } from './ui/HUD';
 import { LevelUpOverlay } from './ui/LevelUpOverlay';
 import { GameOverOverlay } from './ui/GameOverOverlay';
+import { PauseOverlay } from './ui/PauseOverlay';
 import { CustomizeOverlay } from './ui/CustomizeOverlay';
 import { DifficultySelect } from './ui/DifficultySelect';
 import { useGameStore } from './game/state/gameStore';
@@ -51,7 +52,7 @@ function App() {
   // Customize overlay (shared between menu and in-game)
   if (showCustomize || screen === 'customizing') {
     return (
-      <div className="relative w-screen h-screen overflow-hidden bg-gray-900">
+      <div className="relative w-screen h-screen overflow-hidden bg-gray-50">
         <CustomizeOverlay
           onClose={() => {
             setShowCustomize(false);
@@ -81,35 +82,10 @@ function App() {
     <div className="relative w-screen h-screen overflow-hidden">
       <PhaserGame />
       <HUD />
+
+      {gameState === 'paused' && <PauseOverlay />}
       {gameState === 'level-up' && <LevelUpOverlay />}
       {gameState === 'game-over' && <GameOverOverlay />}
-
-      {/* Customize button — visible on game-over */}
-      {gameState === 'game-over' && (
-        <div className="absolute bottom-4 left-4 z-20 flex gap-2">
-          <button
-            onClick={() => setShowCustomize(true)}
-            className="px-4 py-2 rounded-xl bg-white/[0.08] backdrop-blur-md text-white/60 text-[13px] font-medium transition-all hover:bg-white/[0.12] active:scale-[0.97]"
-          >
-            Sprite
-          </button>
-          <button
-            onClick={() => setScreen('main-menu')}
-            className="px-4 py-2 rounded-xl bg-white/[0.08] backdrop-blur-md text-white/60 text-[13px] font-medium transition-all hover:bg-white/[0.12] active:scale-[0.97]"
-          >
-            Menu
-          </button>
-        </div>
-      )}
-
-      {/* Persistent settings button */}
-      <button
-        onClick={() => setShowCustomize(true)}
-        className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white/40 text-[13px] transition-all hover:bg-black/40 hover:text-white/60"
-        title="Customize"
-      >
-        ⚙
-      </button>
     </div>
   );
 }

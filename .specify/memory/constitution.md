@@ -20,7 +20,7 @@
   Follow-up TODOs: None
 -->
 
-# Tethered Love: The Deadline Survivors — Constitution
+# Dây Tơ Hồng: The Deadline Survivors — Constitution
 
 ## Core Principles
 

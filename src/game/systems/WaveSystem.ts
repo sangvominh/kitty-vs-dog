@@ -14,14 +14,16 @@ interface WaveConfig {
 }
 
 const WAVE_TABLE: WaveConfig[] = [
-  { spawnInterval: 2000, batchSize: 2, enemyTypes: ['bill'], hasBoss: false }, // Wave 1
-  { spawnInterval: 1600, batchSize: 3, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 2
-  { spawnInterval: 1200, batchSize: 3, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 3
-  { spawnInterval: 1000, batchSize: 4, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 4
-  { spawnInterval: 800, batchSize: 4, enemyTypes: ['bill', 'deadline'], hasBoss: true }, // Wave 5
-  { spawnInterval: 700, batchSize: 5, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 6
-  { spawnInterval: 600, batchSize: 5, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 7
-  { spawnInterval: 500, batchSize: 6, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 8
+  { spawnInterval: 3000, batchSize: 1, enemyTypes: ['bill'], hasBoss: false }, // Wave 1
+  { spawnInterval: 2500, batchSize: 2, enemyTypes: ['bill'], hasBoss: false }, // Wave 2
+  { spawnInterval: 2200, batchSize: 2, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 3
+  { spawnInterval: 2000, batchSize: 2, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 4
+  { spawnInterval: 1800, batchSize: 3, enemyTypes: ['bill', 'deadline'], hasBoss: true }, // Wave 5
+  { spawnInterval: 1500, batchSize: 3, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 6
+  { spawnInterval: 1300, batchSize: 3, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 7
+  { spawnInterval: 1100, batchSize: 4, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 8
+  { spawnInterval: 1000, batchSize: 4, enemyTypes: ['bill', 'deadline'], hasBoss: true }, // Wave 9
+  { spawnInterval: 900, batchSize: 4, enemyTypes: ['bill', 'deadline'], hasBoss: false }, // Wave 10
 ];
 
 export class WaveSystem {
@@ -122,11 +124,11 @@ export class WaveSystem {
       return WAVE_TABLE[this.waveNumber - 1];
     }
 
-    // Beyond wave 8: floor values, boss frequency from difficulty
+    // Beyond wave 10: gradual scaling, boss frequency from difficulty
     const hasBoss = (this.waveNumber - 5) % this.difficulty.bossFrequency === 0;
     return {
-      spawnInterval: 400,
-      batchSize: 6,
+      spawnInterval: Math.max(500, 900 - (this.waveNumber - WAVE_TABLE.length) * 30),
+      batchSize: Math.min(6, 4 + Math.floor((this.waveNumber - WAVE_TABLE.length) / 3)),
       enemyTypes: ['bill', 'deadline'],
       hasBoss,
     };
@@ -135,9 +137,9 @@ export class WaveSystem {
   private applyWaveConfig(): void {
     const config = this.getWaveConfig();
 
-    // Base multipliers from wave progression
-    const baseHealthMul = Math.sqrt(this.waveNumber);
-    const baseSpeedMul = 1 + 0.1 * Math.log2(this.waveNumber);
+    // Base multipliers from wave progression (gentler curve)
+    const baseHealthMul = 1 + 0.15 * (this.waveNumber - 1);
+    const baseSpeedMul = 1 + 0.05 * Math.log2(Math.max(1, this.waveNumber));
 
     // Apply difficulty multipliers on top
     const healthMul = baseHealthMul * this.difficulty.enemyHpMultiplier;
@@ -174,5 +176,15 @@ export class WaveSystem {
 
   destroy(): void {
     // Cleanup
+  }
+
+  /**
+   * Shift internal time references forward by pauseDuration so that
+   * time spent in level-up / game-over screens does not count toward
+   * wave progression.
+   */
+  compensatePause(pauseDuration: number): void {
+    this.lastWaveTime += pauseDuration;
+    this.waveStartTime += pauseDuration;
   }
 }

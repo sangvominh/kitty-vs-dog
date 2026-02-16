@@ -5,7 +5,7 @@
 
 ## Summary
 
-Implement the core gameplay loop for "Tethered Love: The Deadline Survivors" — a local co-op top-down survival roguelike where two players (Kitty and Doggo) are physically tied by an elastic rope. The feature covers: tethered movement with Matter.js spring constraints, dual-player WASD/Arrow input, auto-attack combat for ranged (Kitty) and melee (Doggo) roles, the "Clothesline" rope-as-weapon mechanic, the "Love Reload" collision-based ammo/health restore, enemy spawning with three types (Bill, Deadline, Ex-Lover boss), wave progression scaling every 30 seconds, coin collection with level-up upgrades, and a shared health pool driving game-over state.
+Implement the core gameplay loop for "Dây Tơ Hồng: The Deadline Survivors" — a local co-op top-down survival roguelike where two players (Kitty and Doggo) are physically tied by an elastic rope. The feature covers: tethered movement with Matter.js spring constraints, dual-player WASD/Arrow input, auto-attack combat for ranged (Kitty) and melee (Doggo) roles, the "Clothesline" rope-as-weapon mechanic, the "Love Reload" collision-based ammo/health restore, enemy spawning with three types (Bill, Deadline, Ex-Lover boss), wave progression scaling every 30 seconds, coin collection with level-up upgrades, and a shared health pool driving game-over state.
 
 ## Technical Context
 

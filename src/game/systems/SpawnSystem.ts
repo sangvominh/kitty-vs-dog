@@ -256,6 +256,15 @@ export class SpawnSystem {
     return { x: -margin, y: Math.random() * GAME_HEIGHT };
   }
 
+  /**
+   * Shift internal time references forward so that time spent in
+   * level-up / game-over screens does not trigger instant spawns.
+   */
+  compensatePause(pauseDuration: number): void {
+    this.lastSpawnTime += pauseDuration;
+    this.gameStartTime += pauseDuration;
+  }
+
   destroy(): void {
     for (const enemy of this.enemies) {
       enemy.destroy();
