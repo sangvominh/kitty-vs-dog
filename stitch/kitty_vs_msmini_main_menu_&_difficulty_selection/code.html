@@ -1,0 +1,362 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Kitty vs MSmini - Main Menu</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: '#2b8cee',
+              'background-light': '#f6f7f8',
+              'background-dark': '#101922',
+            },
+            fontFamily: {
+              display: ['Plus Jakarta Sans', 'sans-serif'],
+            },
+            borderRadius: {
+              DEFAULT: '1rem',
+              lg: '2rem',
+              xl: '3rem',
+              full: '9999px',
+            },
+            backgroundImage: {
+              'glass-gradient':
+                'linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.3))',
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      /* Custom scrollbar for horizontal scrolling if needed */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 8px 32px 0 rgba(43, 140, 238, 0.1);
+      }
+
+      .glass-card {
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .glass-card:hover {
+        transform: translateY(-4px);
+        background: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 12px 24px -8px rgba(43, 140, 238, 0.25);
+        border-color: #2b8cee;
+      }
+
+      .glass-card.active {
+        background: rgba(43, 140, 238, 0.1);
+        border: 2px solid #2b8cee;
+        box-shadow: 0 0 20px rgba(43, 140, 238, 0.3);
+      }
+
+      .bg-pattern {
+        background-image: radial-gradient(#2b8cee 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+    </style>
+  </head>
+  <body
+    class="font-display bg-background-light dark:bg-background-dark text-slate-800 dark:text-white overflow-hidden h-screen w-screen relative"
+  >
+    <!-- Background Layer with Image -->
+    <div class="absolute inset-0 z-0 overflow-hidden">
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-background-light/90 via-background-light/60 to-transparent dark:from-background-dark/90 z-10"
+      ></div>
+      <img
+        alt="abstract colorful retro gaming pixel art landscape"
+        class="w-full h-full object-cover opacity-60 dark:opacity-40 filter blur-sm"
+        data-alt="abstract colorful retro gaming pixel art landscape"
+        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBloRykykFXp5rwQvHdgUkqx26lj5Q4xmHR98P-FjriambVVlcu1Z1u7KewTR38hGZX0B_eyA2ovGnJ1nl626MNekZZvQ2hhRzxm5Fqes-E-k208NPzavbYlFr2v43xqvka4cueFhPXVuly_7fOXDdCCRmO4q6elBkflWV74nk3YAIYUk09EEtL5G64O_Q3THzncE8D52VQoDU3MRY6S2Z-Fbpu28T-xxr_ogZpoTuQoU9K7122lyjoqJT5szWmh7QrMIQTloHCzqw"
+      />
+    </div>
+    <!-- Decorative floating elements -->
+    <div
+      class="absolute top-10 left-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl animate-pulse z-0"
+    ></div>
+    <div
+      class="absolute bottom-20 right-20 w-64 h-64 bg-purple-400/20 rounded-full blur-3xl animate-pulse z-0"
+      style="animation-delay: 1s"
+    ></div>
+    <!-- Main Content Container -->
+    <main
+      class="relative z-20 h-full flex flex-col items-center justify-between py-8 px-4 lg:py-12 max-w-7xl mx-auto"
+    >
+      <!-- Header / Top Bar -->
+      <header class="w-full flex justify-between items-start">
+        <div class="flex flex-col">
+          <span
+            class="text-sm font-bold tracking-wider text-primary uppercase mb-1 bg-white/50 backdrop-blur-sm px-3 py-1 rounded-full w-fit border border-white/50 shadow-sm"
+            >v1.2.4 Early Access</span
+          >
+        </div>
+        <!-- Utility Buttons -->
+        <div class="flex gap-3">
+          <button
+            class="w-10 h-10 flex items-center justify-center rounded-full glass-card hover:bg-white text-slate-600 hover:text-primary transition-colors"
+          >
+            <span class="material-icons-round text-xl">language</span>
+          </button>
+          <button
+            class="w-10 h-10 flex items-center justify-center rounded-full glass-card hover:bg-white text-slate-600 hover:text-primary transition-colors"
+          >
+            <span class="material-icons-round text-xl">volume_up</span>
+          </button>
+          <button
+            class="w-10 h-10 flex items-center justify-center rounded-full glass-card hover:bg-white text-slate-600 hover:text-primary transition-colors"
+          >
+            <span class="material-icons-round text-xl">settings</span>
+          </button>
+        </div>
+      </header>
+      <!-- Center Logo Area -->
+      <div class="text-center flex-1 flex flex-col justify-center items-center -mt-8">
+        <div class="relative mb-2">
+          <h2 class="text-lg md:text-xl font-bold text-slate-500 tracking-widest uppercase">
+            Kitty vs MSmini
+          </h2>
+        </div>
+        <h1
+          class="text-4xl md:text-6xl lg:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-primary via-blue-400 to-purple-500 drop-shadow-sm mb-2 leading-tight"
+        >
+          Dây Tơ Hồng
+        </h1>
+        <h2
+          class="text-2xl md:text-3xl font-bold text-slate-700 dark:text-slate-200 tracking-tight"
+        >
+          The Deadline Survivors
+        </h2>
+      </div>
+      <!-- Difficulty Selection Carousel -->
+      <div class="w-full max-w-6xl mb-8">
+        <div class="flex items-center justify-between mb-6 px-4">
+          <div class="flex items-center gap-2">
+            <span class="material-icons-round text-primary">signal_cellular_alt</span>
+            <h3 class="text-xl font-bold text-slate-700 dark:text-white">Select Difficulty</h3>
+          </div>
+          <div
+            class="text-sm font-medium text-slate-500 bg-white/40 px-3 py-1 rounded-full backdrop-blur-sm border border-white/40"
+          >
+            Map: The Lost Server Room
+          </div>
+        </div>
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4 w-full">
+          <!-- Card 1: Thử -->
+          <button
+            class="glass-card group flex flex-col items-center justify-center p-4 rounded-lg md:rounded-xl relative text-center h-40 md:h-48"
+          >
+            <div
+              class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center mb-3 text-2xl md:text-3xl shadow-inner group-hover:scale-110 transition-transform"
+            >
+              🌸
+            </div>
+            <span class="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base"
+              >Thử</span
+            >
+            <span class="text-xs text-slate-500 mt-1">Tutorial</span>
+            <div class="mt-auto pt-2 border-t border-slate-200/50 w-full">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Best Wave</span>
+              <span class="text-sm font-bold text-primary">50</span>
+            </div>
+          </button>
+          <!-- Card 2: Bình Thường (Active) -->
+          <button
+            class="glass-card active group flex flex-col items-center justify-center p-4 rounded-lg md:rounded-xl relative text-center h-40 md:h-48 transform scale-105 z-10"
+          >
+            <div
+              class="absolute -top-3 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg"
+            >
+              SELECTED
+            </div>
+            <div
+              class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-3 text-2xl md:text-3xl shadow-inner group-hover:scale-110 transition-transform"
+            >
+              ⚔️
+            </div>
+            <span class="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base"
+              >Bình Thường</span
+            >
+            <span class="text-xs text-slate-500 mt-1">Normal</span>
+            <div class="mt-auto pt-2 border-t border-blue-200/50 w-full">
+              <span class="text-[10px] uppercase font-bold text-blue-400 block">Best Wave</span>
+              <span class="text-sm font-bold text-primary">45</span>
+            </div>
+          </button>
+          <!-- Card 3: Gắn Kết -->
+          <button
+            class="glass-card group flex flex-col items-center justify-center p-4 rounded-lg md:rounded-xl relative text-center h-40 md:h-48"
+          >
+            <div
+              class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-red-100 text-red-500 flex items-center justify-center mb-3 text-2xl md:text-3xl shadow-inner group-hover:scale-110 transition-transform"
+            >
+              💕
+            </div>
+            <span class="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base"
+              >Gắn Kết</span
+            >
+            <span class="text-xs text-slate-500 mt-1">Co-op</span>
+            <div class="mt-auto pt-2 border-t border-slate-200/50 w-full">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Best Wave</span>
+              <span class="text-sm font-bold text-primary">30</span>
+            </div>
+          </button>
+          <!-- Card 4: Plus -->
+          <button
+            class="glass-card group flex flex-col items-center justify-center p-4 rounded-lg md:rounded-xl relative text-center h-40 md:h-48"
+          >
+            <div
+              class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center mb-3 text-2xl md:text-3xl shadow-inner group-hover:scale-110 transition-transform"
+            >
+              🔥
+            </div>
+            <span class="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base"
+              >Plus</span
+            >
+            <span class="text-xs text-slate-500 mt-1">Hard</span>
+            <div class="mt-auto pt-2 border-t border-slate-200/50 w-full">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Best Wave</span>
+              <span class="text-sm font-bold text-slate-400">--</span>
+            </div>
+          </button>
+          <!-- Card 5: Pro -->
+          <button
+            class="glass-card group flex flex-col items-center justify-center p-4 rounded-lg md:rounded-xl relative text-center h-40 md:h-48"
+          >
+            <div
+              class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center mb-3 text-2xl md:text-3xl shadow-inner group-hover:scale-110 transition-transform"
+            >
+              ⚡
+            </div>
+            <span class="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base"
+              >Pro</span
+            >
+            <span class="text-xs text-slate-500 mt-1">Expert</span>
+            <div class="mt-auto pt-2 border-t border-slate-200/50 w-full">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Best Wave</span>
+              <span class="text-sm font-bold text-slate-400">--</span>
+            </div>
+          </button>
+          <!-- Card 6: ProMax -->
+          <button
+            class="glass-card group flex flex-col items-center justify-center p-4 rounded-lg md:rounded-xl relative text-center h-40 md:h-48 opacity-75 hover:opacity-100"
+          >
+            <div
+              class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-3 text-2xl md:text-3xl shadow-inner group-hover:scale-110 transition-transform"
+            >
+              💀
+            </div>
+            <span class="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base"
+              >ProMax</span
+            >
+            <span class="text-xs text-slate-500 mt-1">Master</span>
+            <div class="mt-auto pt-2 border-t border-slate-200/50 w-full">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Best Wave</span>
+              <span class="text-sm font-bold text-slate-400">--</span>
+            </div>
+          </button>
+          <!-- Card 7: Ác Quỷ -->
+          <button
+            class="glass-card group flex flex-col items-center justify-center p-4 rounded-lg md:rounded-xl relative text-center h-40 md:h-48 border-red-200 hover:border-red-400 hover:bg-red-50/50"
+          >
+            <div
+              class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-red-500 to-slate-800 text-white flex items-center justify-center mb-3 text-2xl md:text-3xl shadow-lg group-hover:scale-110 transition-transform"
+            >
+              👹
+            </div>
+            <span class="font-bold text-red-600 dark:text-red-400 text-sm md:text-base"
+              >Ác Quỷ</span
+            >
+            <span class="text-xs text-slate-500 mt-1">Inferno</span>
+            <div class="mt-auto pt-2 border-t border-red-100 w-full">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Best Wave</span>
+              <span class="text-sm font-bold text-slate-400">--</span>
+            </div>
+          </button>
+        </div>
+      </div>
+      <!-- Footer Actions -->
+      <div
+        class="w-full max-w-lg flex flex-col-reverse md:flex-row gap-4 items-center justify-center pb-4"
+      >
+        <button
+          class="w-full md:w-auto px-8 py-4 rounded-full glass-panel hover:bg-white/80 font-bold text-slate-600 transition-all active:scale-95 flex items-center justify-center gap-2 border border-slate-200/60 shadow-sm"
+        >
+          <span class="material-icons-round text-primary/70">checkroom</span>
+          Tùy chỉnh Sprite
+        </button>
+        <button
+          class="w-full md:w-auto flex-1 px-8 py-4 rounded-full bg-primary hover:bg-blue-600 text-white font-extrabold text-lg shadow-[0_10px_20px_-5px_rgba(43,140,238,0.4)] hover:shadow-[0_15px_25px_-5px_rgba(43,140,238,0.5)] transition-all transform hover:-translate-y-1 active:translate-y-0 active:scale-95 flex items-center justify-center gap-2"
+        >
+          <span class="material-icons-round">play_arrow</span>
+          Bắt Đầu
+        </button>
+      </div>
+    </main>
+    <!-- Character Preview Decoration (Optional for context) -->
+    <div
+      class="hidden lg:block absolute bottom-8 left-12 z-10 pointer-events-none opacity-80 mix-blend-multiply dark:mix-blend-normal"
+    >
+      <div
+        class="bg-white/30 backdrop-blur-md p-2 rounded-2xl border border-white/40 shadow-lg transform -rotate-3"
+      >
+        <div
+          class="w-24 h-24 bg-gradient-to-br from-pink-200 to-purple-200 rounded-xl flex items-center justify-center"
+        >
+          <span class="text-4xl">🐱</span>
+        </div>
+        <div class="mt-2 text-center text-xs font-bold text-slate-600">P1: Kitty</div>
+      </div>
+    </div>
+    <div
+      class="hidden lg:block absolute bottom-16 right-12 z-10 pointer-events-none opacity-80 mix-blend-multiply dark:mix-blend-normal"
+    >
+      <div
+        class="bg-white/30 backdrop-blur-md p-2 rounded-2xl border border-white/40 shadow-lg transform rotate-6"
+      >
+        <div
+          class="w-24 h-24 bg-gradient-to-br from-blue-200 to-cyan-200 rounded-xl flex items-center justify-center"
+        >
+          <span class="text-4xl">🤖</span>
+        </div>
+        <div class="mt-2 text-center text-xs font-bold text-slate-600">P2: MSmini</div>
+      </div>
+    </div>
+  </body>
+</html>

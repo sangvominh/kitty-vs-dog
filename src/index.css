@@ -1,0 +1,174 @@
+@import 'tailwindcss';
+
+/* ─── Design Tokens ─── */
+:root {
+  --color-primary: #2b8cee;
+  --color-bg-light: #f6f7f8;
+  --color-bg-dark: #101922;
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  font-family: var(--font-display);
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light;
+  color: #1e293b;
+  background-color: var(--color-bg-light);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100vw;
+  background-color: var(--color-bg-light);
+  overflow: hidden;
+  font-family: var(--font-display);
+}
+
+/* ─── Glassmorphism Utility Classes ─── */
+.frosted-glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(43, 140, 238, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 12px 24px -8px rgba(43, 140, 238, 0.25);
+  border-color: var(--color-primary);
+}
+
+.glass-card.active {
+  background: rgba(43, 140, 238, 0.1);
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 0 20px rgba(43, 140, 238, 0.3);
+}
+
+/* ─── Background Pattern ─── */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(43, 140, 238, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(43, 140, 238, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.bg-dots-pattern {
+  background-image: radial-gradient(var(--color-primary) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ─── Scrollbar Hiding ─── */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ─── Dashed Border for Drop Zones ─── */
+.dash-border {
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%232B8CEE40' stroke-width='3' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
+}
+.dash-border:hover {
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%232B8CEE' stroke-width='3' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
+}
+
+/* ─── Animations ─── */
+@keyframes pulse-tether {
+  0%,
+  100% {
+    opacity: 0.6;
+    stroke-width: 3;
+  }
+  50% {
+    opacity: 1;
+    stroke-width: 4;
+  }
+}
+.tether-line {
+  animation: pulse-tether 2s infinite ease-in-out;
+}
+
+@keyframes float-char {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.char-float {
+  animation: float-char 3s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(43, 140, 238, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(43, 140, 238, 0.5);
+  }
+}
+.glow-effect {
+  animation: pulse-glow 3s infinite;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out;
+}
+
+/* ─── Game Background for Level-Up ─── */
+.game-bg {
+  background-image:
+    radial-gradient(at 0% 0%, hsla(210, 100%, 96%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(210, 100%, 92%, 1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(210, 100%, 96%, 1) 0, transparent 50%);
+}
+
+/* ─── Material Icons Sizing Fix ─── */
+.material-icons-round {
+  font-size: inherit;
+  line-height: 1;
+}
