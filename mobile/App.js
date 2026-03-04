@@ -10,8 +10,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <WebView
-        // Thay link này bằng link GitHub Pages thực tế sau khi deploy
-        source={{ uri: 'https://sangvominh.github.io/kitty-vs-dog/' }}
+        source={{ uri: 'http://localhost:5173' }}
         style={styles.webview}
         javaScriptEnabled={true}
         domStorageEnabled={true}

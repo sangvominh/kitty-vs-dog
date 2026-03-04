@@ -52,7 +52,6 @@ function serveLocalData(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/kitty-vs-dog/', // Cấu hình đường dẫn cho GitHub Pages (đổi từ repo của bạn)
   plugins: [react(), serveLocalData()],
   resolve: {
     alias: {
