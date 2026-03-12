@@ -168,10 +168,10 @@ function Format-TechnologyStack {
         [Parameter(Mandatory=$false)]
         [string]$Framework
     )
-    $parts = @()
-    if ($Lang -and $Lang -ne 'NEEDS CLARIFICATION') { $parts += $Lang }
-    if ($Framework -and $Framework -notin @('NEEDS CLARIFICATION','N/A')) { $parts += $Framework }
-    if (-not $parts) { return '' }
+    $parts = New-Object System.Collections.Generic.List[string]
+    if ($Lang -and $Lang -ne 'NEEDS CLARIFICATION') { $parts.Add($Lang) }
+    if ($Framework -and $Framework -notin @('NEEDS CLARIFICATION','N/A')) { $parts.Add($Framework) }
+    if ($parts.Count -eq 0) { return '' }
     return ($parts -join ' + ')
 }
 
@@ -278,17 +278,17 @@ function Update-ExistingAgentFile {
     if (-not (Test-Path $TargetFile)) { return (New-AgentFile -TargetFile $TargetFile -ProjectName (Split-Path $REPO_ROOT -Leaf) -Date $Date) }
 
     $techStack = Format-TechnologyStack -Lang $NEW_LANG -Framework $NEW_FRAMEWORK
-    $newTechEntries = @()
+    $newTechEntries = New-Object System.Collections.Generic.List[string]
     if ($techStack) {
         $escapedTechStack = [Regex]::Escape($techStack)
         if (-not (Select-String -Pattern $escapedTechStack -Path $TargetFile -Quiet)) { 
-            $newTechEntries += "- $techStack ($CURRENT_BRANCH)" 
+            $newTechEntries.Add("- $techStack ($CURRENT_BRANCH)")
         }
     }
     if ($NEW_DB -and $NEW_DB -notin @('N/A','NEEDS CLARIFICATION')) {
         $escapedDB = [Regex]::Escape($NEW_DB)
         if (-not (Select-String -Pattern $escapedDB -Path $TargetFile -Quiet)) { 
-            $newTechEntries += "- $NEW_DB ($CURRENT_BRANCH)" 
+            $newTechEntries.Add("- $NEW_DB ($CURRENT_BRANCH)")
         }
     }
     $newChangeEntry = ''
@@ -307,11 +307,11 @@ function Update-ExistingAgentFile {
             continue
         }
         if ($inTech -and $line -match '^##\s') {
-            if (-not $techAdded -and $newTechEntries.Count -gt 0) { $newTechEntries | ForEach-Object { $output.Add($_) }; $techAdded = $true }
+            if (-not $techAdded -and $newTechEntries.Count -gt 0) { $output.AddRange($newTechEntries); $techAdded = $true }
             $output.Add($line); $inTech = $false; continue
         }
         if ($inTech -and [string]::IsNullOrWhiteSpace($line)) {
-            if (-not $techAdded -and $newTechEntries.Count -gt 0) { $newTechEntries | ForEach-Object { $output.Add($_) }; $techAdded = $true }
+            if (-not $techAdded -and $newTechEntries.Count -gt 0) { $output.AddRange($newTechEntries); $techAdded = $true }
             $output.Add($line); continue
         }
         if ($line -eq '## Recent Changes') {
@@ -334,7 +334,7 @@ function Update-ExistingAgentFile {
 
     # Post-loop check: if we're still in the Active Technologies section and haven't added new entries
     if ($inTech -and -not $techAdded -and $newTechEntries.Count -gt 0) {
-        $newTechEntries | ForEach-Object { $output.Add($_) }
+        $output.AddRange($newTechEntries)
     }
 
     Set-Content -LiteralPath $TargetFile -Value ($output -join [Environment]::NewLine) -Encoding utf8
