@@ -1,0 +1,3 @@
+## 2025-03-09 - Added ARIA labels and tooltips to icon-only buttons
+**Learning:** Found multiple icon-only buttons (`<button><span class="material-icons-round">...</span></button>`) across the app, specifically in `HUD.tsx` and `DifficultySelect.tsx`, that lacked `aria-label` and `title` attributes. This is a common pattern in the app that impacts accessibility and usability for users who rely on screen readers or need tooltips to understand icon meanings.
+**Action:** Always check icon-only buttons for `aria-label` and `title` attributes when creating or reviewing components. Use localized text (Vietnamese) for these attributes to match the app's context.
