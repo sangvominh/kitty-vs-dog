@@ -147,6 +147,8 @@ export function HUD() {
         {/* Pause button */}
         <button
           onClick={() => setGameState('paused')}
+          aria-label="Tạm dừng"
+          title="Tạm dừng"
           className="frosted-glass p-2.5 rounded-full text-gray-600 hover:text-[var(--color-primary)] hover:scale-110 transition-all shadow-sm pointer-events-auto"
         >
           <span className="material-icons-round text-lg">pause</span>
@@ -155,6 +157,8 @@ export function HUD() {
         {/* Settings button */}
         <button
           onClick={() => setShowCustomize(true)}
+          aria-label="Cài đặt"
+          title="Cài đặt"
           className="frosted-glass p-2.5 rounded-full text-gray-600 hover:text-[var(--color-primary)] hover:scale-110 transition-all shadow-sm group pointer-events-auto"
         >
           <span className="material-icons-round group-hover:rotate-90 transition-transform duration-500 text-lg">
