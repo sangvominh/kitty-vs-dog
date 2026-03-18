@@ -173,6 +173,8 @@ export function CustomizeOverlay({ onClose }: CustomizeOverlayProps) {
           </div>
           <button
             onClick={onClose}
+            aria-label="Đóng"
+            title="Đóng"
             className="w-8 h-8 rounded-full bg-white/50 hover:bg-red-50 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors"
           >
             <span className="material-icons-round text-lg">close</span>

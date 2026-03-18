@@ -41,10 +41,18 @@ export function DifficultySelect({ onPlay, onCustomize }: DifficultySelectProps)
             v1.0.0 Truy cập sớm
           </span>
           <div className="flex gap-3">
-            <button className="w-10 h-10 flex items-center justify-center rounded-full glass-card text-slate-600 hover:text-[var(--color-primary)] transition-colors text-xl">
+            <button
+              aria-label="Âm thanh"
+              title="Âm thanh"
+              className="w-10 h-10 flex items-center justify-center rounded-full glass-card text-slate-600 hover:text-[var(--color-primary)] transition-colors text-xl"
+            >
               <span className="material-icons-round">volume_up</span>
             </button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-full glass-card text-slate-600 hover:text-[var(--color-primary)] transition-colors text-xl">
+            <button
+              aria-label="Cài đặt"
+              title="Cài đặt"
+              className="w-10 h-10 flex items-center justify-center rounded-full glass-card text-slate-600 hover:text-[var(--color-primary)] transition-colors text-xl"
+            >
               <span className="material-icons-round">settings</span>
             </button>
           </div>
