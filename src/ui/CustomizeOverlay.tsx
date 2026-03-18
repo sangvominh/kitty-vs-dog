@@ -195,6 +195,8 @@ export function CustomizeOverlay({ onClose }: CustomizeOverlayProps) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
+                  aria-label={tab.label}
+                  title={tab.label}
                   className={`group flex items-center gap-3 p-2 lg:px-3 lg:py-2.5 rounded-full transition-all
                     ${
                       isActive
