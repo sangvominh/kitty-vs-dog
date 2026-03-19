@@ -93,8 +93,9 @@ export function SpriteSlotPanel({ entityId }: SpriteSlotPanelProps) {
                 {levels.length > 1 && (
                   <button
                     onClick={() => handleRemoveLevel(idx)}
-                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-600"
+                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 transition-opacity shadow-sm hover:bg-red-600"
                     title={`Xóa Level ${idx + 1}`}
+                    aria-label={`Xóa Level ${idx + 1}`}
                   >
                     <span className="material-icons-round" style={{ fontSize: '12px' }}>
                       close

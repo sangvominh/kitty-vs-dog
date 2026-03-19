@@ -105,7 +105,7 @@ export function ActionSlotCard({
             <button
               type="button"
               onClick={triggerUpload}
-              className="flex-1 flex items-center justify-center gap-1 text-xs font-semibold py-1.5 rounded-md bg-white/60 hover:bg-[var(--color-primary)]/10 text-slate-600 hover:text-[var(--color-primary)] transition-colors"
+              className="flex-1 flex items-center justify-center gap-1 text-xs font-semibold py-1.5 rounded-md bg-white/60 hover:bg-[var(--color-primary)]/10 text-slate-600 hover:text-[var(--color-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
             >
               <span className="material-icons-round text-base">edit</span>
               Đổi
@@ -113,7 +113,7 @@ export function ActionSlotCard({
             <button
               type="button"
               onClick={onRemove}
-              className="flex-1 flex items-center justify-center gap-1 text-xs font-semibold py-1.5 rounded-md bg-white/60 hover:bg-red-50 text-slate-600 hover:text-red-500 transition-colors"
+              className="flex-1 flex items-center justify-center gap-1 text-xs font-semibold py-1.5 rounded-md bg-white/60 hover:bg-red-50 text-slate-600 hover:text-red-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             >
               <span className="material-icons-round text-base">delete</span>
               Xóa
@@ -122,9 +122,10 @@ export function ActionSlotCard({
         </>
       ) : (
         /* Empty state — upload prompt */
-        <label
-          htmlFor={inputId}
-          className="flex flex-col items-center justify-center cursor-pointer w-full py-3"
+        <button
+          type="button"
+          onClick={triggerUpload}
+          className="flex flex-col items-center justify-center cursor-pointer w-full py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] rounded-lg"
         >
           <div className="w-14 h-14 rounded-full bg-[var(--color-primary)]/10 group-hover:bg-[var(--color-primary)] text-[var(--color-primary)] group-hover:text-white flex items-center justify-center mb-2 transition-colors">
             <span className="material-icons-round text-3xl">{icon}</span>
@@ -133,7 +134,7 @@ export function ActionSlotCard({
             {label}
           </span>
           <span className="text-[11px] text-slate-400 mt-0.5">Thả hoặc chọn ảnh</span>
-        </label>
+        </button>
       )}
     </div>
   );
