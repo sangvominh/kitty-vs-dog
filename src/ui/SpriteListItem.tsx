@@ -122,9 +122,10 @@ export function ActionSlotCard({
         </>
       ) : (
         /* Empty state — upload prompt */
-        <label
-          htmlFor={inputId}
-          className="flex flex-col items-center justify-center cursor-pointer w-full py-3"
+        <button
+          type="button"
+          onClick={triggerUpload}
+          className="flex flex-col items-center justify-center cursor-pointer w-full py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 rounded-lg"
         >
           <div className="w-14 h-14 rounded-full bg-[var(--color-primary)]/10 group-hover:bg-[var(--color-primary)] text-[var(--color-primary)] group-hover:text-white flex items-center justify-center mb-2 transition-colors">
             <span className="material-icons-round text-3xl">{icon}</span>
@@ -133,7 +134,7 @@ export function ActionSlotCard({
             {label}
           </span>
           <span className="text-[11px] text-slate-400 mt-0.5">Thả hoặc chọn ảnh</span>
-        </label>
+        </button>
       )}
     </div>
   );
