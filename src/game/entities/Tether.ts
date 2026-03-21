@@ -114,7 +114,7 @@ export class Tether {
 
       // Kill outward velocity
       const velA = this.playerA.body.velocity;
-      const dotA = velA.x * (-nx) + velA.y * (-ny);
+      const dotA = velA.x * -nx + velA.y * -ny;
       if (dotA > 0) {
         Matter.Body.setVelocity(this.playerA.body, {
           x: velA.x + dotA * nx,

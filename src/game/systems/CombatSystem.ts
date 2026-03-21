@@ -12,8 +12,6 @@ import { useGameStore } from '../state/gameStore';
 import { useSettingsStore } from '../../lib/settingsStore';
 import { getDifficulty } from '../state/difficultyConfig';
 
-
-
 export class CombatSystem {
   public scene: Phaser.Scene;
   public projectiles: Projectile[] = [];
@@ -305,10 +303,14 @@ export class CombatSystem {
         const dot = enemyToRopeX * perpX + enemyToRopeY * perpY;
         const sign = dot >= 0 ? 1 : -1;
 
-        ((Phaser.Physics.Matter as any).Matter as any).Body.applyForce(enemy.body, enemy.body.position, {
-          x: perpX * sign * this.tether.clotheslineKnockback * 0.01,
-          y: perpY * sign * this.tether.clotheslineKnockback * 0.01,
-        });
+        ((Phaser.Physics.Matter as any).Matter as any).Body.applyForce(
+          enemy.body,
+          enemy.body.position,
+          {
+            x: perpX * sign * this.tether.clotheslineKnockback * 0.01,
+            y: perpY * sign * this.tether.clotheslineKnockback * 0.01,
+          },
+        );
 
         // Stun boss on clothesline hit
         if (enemy instanceof EnemyExLover) {
