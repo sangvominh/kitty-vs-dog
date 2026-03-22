@@ -105,6 +105,8 @@ export function ActionSlotCard({
             <button
               type="button"
               onClick={triggerUpload}
+              aria-label="Đổi"
+              title="Đổi"
               className="flex-1 flex items-center justify-center gap-1 text-xs font-semibold py-1.5 rounded-md bg-white/60 hover:bg-[var(--color-primary)]/10 text-slate-600 hover:text-[var(--color-primary)] transition-colors"
             >
               <span className="material-icons-round text-base">edit</span>
@@ -113,6 +115,8 @@ export function ActionSlotCard({
             <button
               type="button"
               onClick={onRemove}
+              aria-label="Xóa"
+              title="Xóa"
               className="flex-1 flex items-center justify-center gap-1 text-xs font-semibold py-1.5 rounded-md bg-white/60 hover:bg-red-50 text-slate-600 hover:text-red-500 transition-colors"
             >
               <span className="material-icons-round text-base">delete</span>
