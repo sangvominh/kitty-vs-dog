@@ -165,11 +165,19 @@ export function LevelUpOverlay() {
 
         {/* Secondary Actions */}
         <div className="mt-10 flex gap-4">
-          <button className="glass-panel px-6 py-3 rounded-full text-slate-600 font-bold text-sm hover:bg-white hover:text-[var(--color-primary)] transition-colors flex items-center gap-2">
+          <button
+            aria-label="Đổi lại"
+            title="Đổi lại"
+            className="glass-panel px-6 py-3 rounded-full text-slate-600 font-bold text-sm hover:bg-white hover:text-[var(--color-primary)] transition-colors flex items-center gap-2"
+          >
             <span className="material-icons-round text-lg">refresh</span>
             Đổi lại
           </button>
-          <button className="glass-panel px-6 py-3 rounded-full text-slate-600 font-bold text-sm hover:bg-white hover:text-red-500 transition-colors flex items-center gap-2">
+          <button
+            aria-label="Bỏ qua"
+            title="Bỏ qua"
+            className="glass-panel px-6 py-3 rounded-full text-slate-600 font-bold text-sm hover:bg-white hover:text-red-500 transition-colors flex items-center gap-2"
+          >
             <span className="material-icons-round text-lg">skip_next</span>
             Bỏ qua
           </button>
